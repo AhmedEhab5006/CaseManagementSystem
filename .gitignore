@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/CaseManagementSystem
+/CaseManagementSystem.API/obj
+/CaseManagementSystemAPI/bin/Debug/net8.0
+/CaseManagementSystemAPI/obj
+/CaseManagementSystemAPI/appsettings.Development.json
+/Domain/bin/Debug/net8.0
+/Infrastrcuture/bin/Debug/net8.0
+/Domain/obj
+/Infrastrcuture/obj
+
+/Service/bin/Debug/net8.0
+/Service/obj
