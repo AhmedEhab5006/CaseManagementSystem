@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace Domain.Entites
         public int number { get; set; }
         public DateTime currentHearingDate { get; set; }
         public DateTime? nextHearingDate { get; set; }
-        public enum scheduledBy { lawyer , researcher }
+        public HearingScheduler scheduledBy {  get; set; }
         public string? location { get; set; }
         public string? notes { get; set; }
         public Guid CaseId { get; set; }

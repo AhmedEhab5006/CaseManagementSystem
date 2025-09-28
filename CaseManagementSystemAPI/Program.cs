@@ -1,7 +1,16 @@
-﻿using Infrastrcuture.Auth;
+﻿using Application.Interfaces;
+using Application.UseCases.Auth;
+using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
+using Infrastrcuture.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Infrastrcuture.Database;
+using Infrastrcuture.Repositories.Auth;
+using CaseManagementSystemAPI.Middlewares;
+using Application.Repositories.Auth;
+using Infrastrcuture.Mappers;
+using AutoMapper;
 
 internal class Program
 {
@@ -15,7 +24,15 @@ internal class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddScoped<SendOTPUseCase>();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<IOTPCache, OTPCacheService>();
+        builder.Services.AddScoped<VerifyOTPUseCase>();
+        builder.Services.AddScoped<CheckEmail>();
+        builder.Services.AddScoped<IAuthRepository , AuthRepository>();
+        builder.Services.AddScoped<ILoginService , LoginService>();
+        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.AddDbContext<ApplicationDbContext>(option =>
 
@@ -79,9 +96,12 @@ internal class Program
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<GlobalExceptionHandler>();
 
         app.MapControllers();
+
 
         app.Run();
     }

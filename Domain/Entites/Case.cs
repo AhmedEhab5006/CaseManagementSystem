@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Domain.Entites
         public string caseNumberInCourt { get; set; }
         public string caseNumberInCourtComputer { get; set; }
         public string caseNumberInClaim { get; set; }
-        public enum status { Registered , UnderStudy , Pleading , Judged , Closed}
+        public CaseStatus status {  get; set; }
         public bool approved { get; set; }
         public string governate { get; set; }
         public string state { get; set; }
