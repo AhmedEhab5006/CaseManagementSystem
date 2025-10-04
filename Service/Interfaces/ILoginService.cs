@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces
 {
-    public interface IEmailService
+    public interface ILoginService
     {
-        public Task SendOTPAsync (string email , int otp);
+        public Task<string> Login(LoginDto loginDto);
+
     }
 }

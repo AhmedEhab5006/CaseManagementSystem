@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Services
 {
-    public class OTPCacheService : IOTPCache
+    public class CacheService : ICacheService
     {
         private readonly IMemoryCache _memoryCache;
 
-        public OTPCacheService(IMemoryCache memoryCache)
+        public CacheService(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
         }

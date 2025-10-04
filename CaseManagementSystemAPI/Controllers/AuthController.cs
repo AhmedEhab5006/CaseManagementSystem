@@ -1,5 +1,6 @@
 ﻿using Application.Dto_s;
 using Application.Enums;
+using Application.Interfaces;
 using Application.UseCases.Auth;
 using CaseManagementSystemAPI.ResponseHandlers;
 using Infrastrcuture.Services;
@@ -10,7 +11,9 @@ namespace CaseManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(SendOTPUseCase _sendOtpUseCase, VerifyOTPUseCase _verifyOTPUseCase , CheckEmail _checkEmail , ILoginService _loginService) : ControllerBase
+    public class AuthController(SendOTPUseCase _sendOtpUseCase, VerifyOTPUseCase _verifyOTPUseCase , CheckEmail _checkEmail 
+        , LoginUseCase _loginService  , 
+        IResetPasswordService _resetPasswordService , IUserService _userService , ICacheService _cacheService) : ControllerBase
     {
 
         [HttpPost("Send-Verification-Email")]
@@ -72,5 +75,35 @@ namespace CaseManagementSystemAPI.Controllers
             return Ok(new APIResponseHandler<string>(200, "Success", data: logged));
 
         }
+
+        [HttpPost("Reset-Password")]
+        public async Task <IActionResult> ResetPassword (PasswordResetDto passwordResetDto)
+        {
+            
+            var user = await _userService.GetUserByEmail();
+
+            if (user is not null) {
+
+                var token = await _resetPasswordService.GenerateResetPassowrdTokenAsync();
+
+                if (token != ResetPasswordValidation.PasswordWasnotSent.ToString())
+                {
+                    var done = await _resetPasswordService.ResetPasswordAsync(user, token , passwordResetDto.newPassword);
+                    if (done)
+                    {
+                        return Ok(new APIResponseHandler<string>(200, "Success",
+                      data: "Password resetting was done | تم اعادة تعيين كلمة المرور"));
+                    }
+                }
+            }
+
+            return BadRequest(new APIResponseHandler<string>(400, "Bad Request", data: "An error occured may be email is wrong try another one" +
+              "| من الممكن ان يكون البريد الالكتروني خاطئ جرب ادخال بريد الكتروني اخر"));
+
+        }
+
+
+
+
     }
 }

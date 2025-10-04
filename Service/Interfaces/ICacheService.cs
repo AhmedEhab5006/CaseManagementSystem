@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces
 {
-    public interface IOTPCache
+    public interface ICacheService
     {
        public void Set(string key, string value, TimeSpan expiration);
        public string? Get(string key);

@@ -1,5 +1,6 @@
 ﻿using Application.Dto_s;
 using Application.Enums;
+using Application.Interfaces;
 using Application.Repositories.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +17,9 @@ namespace Infrastrcuture.Services
 {
     public class LoginService(IAuthRepository _userRepository , IConfiguration _configuration) : ILoginService
     {
+
+        // RSA key will be injected from Program.cs
+
         public async Task<string> Login(LoginDto loginDto)
         {
             var found = await _userRepository.FindByUsernameAsync(loginDto.username);
@@ -44,9 +48,9 @@ namespace Infrastrcuture.Services
                     await _userRepository.AddClaimsAsync(found, new Claim("Email", found.Email));
                     await _userRepository.AddClaimsAsync(found, new Claim("Role", role.FirstOrDefault().ToString()));
 
+                    // Get the updated claims after adding them
+                    claims = await _userRepository.GetClaimsAsync(found);
                 }
-
-
 
                 var token = GenerateToken(claims);
 
@@ -60,25 +64,25 @@ namespace Infrastrcuture.Services
         public string GenerateToken(IList<Claim> claims)
         {
 
-            RSA rsa = RSA.Create(2048); // توليد مفتاح RSA داخلي 2048 bit
-            var securityKey = new RsaSecurityKey(rsa);
-            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
+            var privateKeyText = File.ReadAllText("Security/private_key.pem");
+            using var rsa = RSA.Create();
+            rsa.ImportFromPem(privateKeyText);
 
-            var expiryDate = DateTime.UtcNow.AddMinutes(15);
+            var key = new RsaSecurityKey(rsa);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
 
-            var jwtSecurityToken = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+            var token = new JwtSecurityToken(
+                issuer: "myapp",
+                audience: "myapp_users",
                 claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: expiryDate,
-                signingCredentials: signingCredentials
+                expires: DateTime.UtcNow.AddMinutes(15),
+                signingCredentials: creds
             );
 
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.WriteToken(jwtSecurityToken);
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return token;
+            return jwt;
         }
     }
+
     }

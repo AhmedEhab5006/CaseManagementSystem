@@ -1,16 +1,22 @@
 ﻿using Application.Interfaces;
+using Application.Repositories;
+using Application.Repositories.Auth;
+using Application.UseCases;
 using Application.UseCases.Auth;
+using AutoMapper;
+using CaseManagementSystemAPI.Middlewares;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
+using Infrastrcuture.Mappers;
+using Infrastrcuture.Repositories;
+using Infrastrcuture.Repositories.Auth;
 using Infrastrcuture.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Infrastrcuture.Database;
-using Infrastrcuture.Repositories.Auth;
-using CaseManagementSystemAPI.Middlewares;
-using Application.Repositories.Auth;
-using Infrastrcuture.Mappers;
-using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Security.Cryptography;
 
 internal class Program
 {
@@ -18,44 +24,14 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-
+        // ------------------- Add Services -------------------
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-        builder.Services.AddScoped<IEmailService, EmailService>();
-        builder.Services.AddScoped<SendOTPUseCase>();
-        builder.Services.AddMemoryCache();
-        builder.Services.AddScoped<IOTPCache, OTPCacheService>();
-        builder.Services.AddScoped<VerifyOTPUseCase>();
-        builder.Services.AddScoped<CheckEmail>();
-        builder.Services.AddScoped<IAuthRepository , AuthRepository>();
-        builder.Services.AddScoped<ILoginService , LoginService>();
-        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-        builder.Services.AddDbContext<ApplicationDbContext>(option =>
-
-            option.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
-
-        builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>
-        (options =>
-        {
-            options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 5;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireUppercase = false;
-            options.Password.RequireLowercase = false;
-        })
-             .AddEntityFrameworkStores<ApplicationDbContext>()
-             .AddDefaultTokenProviders();
-
-
+        // Swagger with JWT Support
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new() { Title = "نظام ادارة القضايا | Case Management System", Version = "v1" });
-
-            // 🔐 Add JWT Bearer token support
+            options.SwaggerDoc("v1", new() { Title = "Case Management System", Version = "v1" });
             options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -63,31 +39,94 @@ internal class Program
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                Description = "بعدها مسافة ثم ادخل التوكن الذي ينتج عن عملية تسجيل الدخول Bearer قم بأدخال كلمة "
+                Description = "Bearer <token>"
             });
-
             options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
                 {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
                 }
-            },
-            new string[] {}
-        }
-    });
+            });
         });
 
+        // ------------------- Application / Infrastructure -------------------
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddScoped<SendOTPUseCase>();
+        builder.Services.AddMemoryCache();
+        builder.Services.AddScoped<ICacheService, CacheService>();
+        builder.Services.AddScoped<VerifyOTPUseCase>();
+        builder.Services.AddScoped<CheckEmail>();
+        builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<ILoginService, LoginService>();
+        builder.Services.AddScoped<LoginUseCase>();
+        builder.Services.AddScoped<IResetPasswordService, ResetPasswordUseCase>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<ICaseService, CaseService>();
+        builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(opt =>
+            opt.TokenLifespan = TimeSpan.FromMinutes(15));
 
+        // ------------------- DbContext -------------------
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 
+        // ------------------- Identity -------------------
+        builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>(options =>
+        {
+            options.Password.RequireDigit = false;
+            options.Password.RequiredLength = 5;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
+        var publicKeyPath = Path.Combine(Directory.GetCurrentDirectory(), "Security", "public_key.pem");
+
+        // Load Public Key content
+        var publicKeyText = File.ReadAllText(publicKeyPath);
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(publicKeyText);
+
+        var securityKey = new RsaSecurityKey(rsa);
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                IssuerSigningKey = securityKey,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RoleClaimType = "Role"
+            };
+        });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy =>
+                     policy.RequireClaim("Role", "Admin"));
+        });
+        // ------------------- Build app -------------------
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -96,13 +135,22 @@ internal class Program
 
         app.UseHttpsRedirection();
 
+        // ------------------- Middleware -------------------
         app.UseAuthentication();
         app.UseAuthorization();
+
         app.UseMiddleware<GlobalExceptionHandler>();
 
+        // Logging to debug Authorization issues
+        app.Use(async (context, next) =>
+        {
+            Console.WriteLine($"Path: {context.Request.Path}");
+            Console.WriteLine($"Authorization Header: {context.Request.Headers["Authorization"]}");
+            Console.WriteLine($"Authenticated: {context.User?.Identity?.IsAuthenticated}");
+            await next();
+        });
+
         app.MapControllers();
-
-
         app.Run();
     }
 }

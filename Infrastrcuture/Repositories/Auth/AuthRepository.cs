@@ -1,4 +1,5 @@
 ﻿using Application.Dto_s;
+using Application.Enums;
 using Application.Repositories.Auth;
 using AutoMapper;
 using Infrastrcuture.Auth;
@@ -18,10 +19,14 @@ namespace Infrastrcuture.Repositories.Auth
     {
         public async Task<bool> AddClaimsAsync(ApplicationUserReadDto user , Claim claim)
         {
-            var userEntity = _mapper.Map<ApplicationUser>(user);
+            var userEntity = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+            
+            if (userEntity == null)
+                return false;
+                
             await _userManager.AddClaimAsync(userEntity, claim);
             return true;
-
         }
 
         public async Task<bool> CheckEmail(string email)
@@ -40,11 +45,13 @@ namespace Infrastrcuture.Repositories.Auth
         public async Task<bool> CheckPasswordAsync(string password, ApplicationUserReadDto user)
         {
             
-            var userEntity = _mapper.Map<ApplicationUser>(user);
+            var userEntity = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+            
+            if (userEntity == null)
+                return false;
 
-            return await _userManager.CheckPasswordAsync(userEntity , password);
-
-
+            return await _userManager.CheckPasswordAsync(userEntity, password);
         }
 
         public async Task<bool> CheckUsernameAsync(string username)
@@ -74,26 +81,77 @@ namespace Infrastrcuture.Repositories.Auth
             return null;
         }
 
-        public async Task<IList<Claim>> GetClaimsAsync(ApplicationUserReadDto user)
+        public async Task<ApplicationUserReadDto?> GetByEmailAsync(string email)
         {
-            var userEntity = _mapper.Map<ApplicationUser>(user);
-            
-            var claims = await _userManager.GetClaimsAsync(userEntity);
-            if (claims.Count > 0)
+            var found = await _userManager.Users
+                          .AsNoTracking()
+                          .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (found is not null)
             {
-                return claims;
+                var user = _mapper.Map<ApplicationUserReadDto>(found);
+                return user;
             }
 
             return null;
+        }
 
+        public async Task<IList<Claim>> GetClaimsAsync(ApplicationUserReadDto user)
+        {
+            var userEntity = await _context.Users
+                                .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            if (userEntity == null)
+                return null;
+
+            var claims = await _userManager.GetClaimsAsync(userEntity);
+
+            return claims.Count > 0 ? claims : null;
         }
 
         public async Task<ICollection<string>> GetUserRoleAsync(ApplicationUserReadDto user)
         {
-            var userEntity = _mapper.Map<ApplicationUser>(user);
+            
+            var userEntity = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+            
+            if (userEntity == null)
+                return new List<string>();
             
             return await _userManager.GetRolesAsync(userEntity);
+        }
 
+        public async Task<string> GenerateResetPassowrdTokenAsync(ApplicationUserReadDto user)
+        {
+            
+            var userEntity = _userManager.Users.FirstOrDefault(a=>a.Id == user.Id);
+            
+            if (userEntity is not null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(userEntity);
+                return token;
+            }
+            
+            return ResetPasswordValidation.PasswordWasnotSent.ToString();
+
+        }
+
+        public async Task<bool> ResetPasswordAsync(ApplicationUserReadDto user, string token, string newPassword)
+        {
+           var userEntiy = await _context.Users.FirstOrDefaultAsync(a=>a.Email == user.Email);
+
+            if ( userEntiy is not null)
+            {
+                var done = await _userManager.ResetPasswordAsync(userEntiy, token, newPassword);
+
+                if (done.Succeeded)
+                {
+                    return true;
+                }
+
+            }
+
+            return false;
         }
     }
 }

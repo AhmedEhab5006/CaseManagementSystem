@@ -9,9 +9,9 @@ namespace Application.UseCases.Auth
 {
     public class VerifyOTPUseCase
     {
-        private readonly IOTPCache _otpCache;
+        private readonly ICacheService _otpCache;
 
-        public VerifyOTPUseCase(IOTPCache otpCache)
+        public VerifyOTPUseCase(ICacheService otpCache)
         {
             _otpCache = otpCache;
         }

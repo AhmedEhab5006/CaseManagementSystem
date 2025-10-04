@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastrcuture.Services
+namespace Application.Interfaces
 {
-    public interface ILoginService
+    public interface IUserService
     {
-        public Task<string> Login(LoginDto loginDto);
-
+        public Task <ApplicationUserReadDto> GetUserByEmail ();
     }
 }

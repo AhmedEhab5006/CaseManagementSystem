@@ -17,7 +17,7 @@ namespace Application.UseCases.Auth
 
             try
             {
-                await _emailService.SendEmailAsync(email.email, otp);
+                await _emailService.SendOTPAsync(email.email, otp);
             }
 
 
