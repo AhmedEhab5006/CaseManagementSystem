@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Application.Dto_s.CaseDtos
 {
-    public class BaseAddDto
+    public class CaseTypeAddDto : BaseAddDto
     {
-        public string createdBy { get; set; } = string.Empty;
-       
+        [Required(ErrorMessage = "لا يمكن ان يكون نوع القضية فارغ")]
+        public string TypeName { get; set; } = string.Empty;
     }
 }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Application.Dto_s.CaseDtos
 {
-    public class BaseAddDto
+    public class CaseLitigantRoleDto : BaseAddDto
     {
-        public string createdBy { get; set; } = string.Empty;
-       
+        [Required(ErrorMessage = "لا يمكن ترك اسم الدور فارغ")]
+        public string RoleName { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Domain.Entites;
+﻿using Application.Commons;
+using Domain.Entites;
 using Infrastrcuture.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,21 +13,44 @@ namespace Infrastrcuture.Repositories
 {
     public class GenericRepository<TEntity>(ApplicationDbContext _context) : IGenericRepository<TEntity> where TEntity : BaseEntity
     {
-        public async Task<IEnumerable<TEntity>> GetAllAsync(bool asNoTracking = true)
+        public async Task<PagedResult<TEntity>> GetAllAsync(int pageNumber, int pageSize 
+            , bool asNoTracking = true , Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
         {
             IQueryable<TEntity> query = _context.Set<TEntity>()
                 .Where(entity => !entity.isDeleted);
+
             if (asNoTracking)
                 query = query.AsNoTracking();
-            return await query.ToListAsync();
+
+            if (include != null)
+                query = include(query);
+
+            int totalRecords = await query.CountAsync();
+
+            var data = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<TEntity>
+            {
+                Data = data,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = totalRecords
+            };
         }
 
-        public async Task<TEntity?> GetByIdAsync(Guid id, bool asNoTracking = true)
+        public async Task<TEntity?> GetByIdAsync(Guid id, bool asNoTracking = true , Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
         {
             IQueryable<TEntity> query = _context.Set<TEntity>();
             if (asNoTracking)
                 query = query.AsNoTracking();
-            return await query.SingleOrDefaultAsync(entity => !entity.isDeleted && entity.id == id); //used singleOrDefaultAsync to ensure only one entity is returned and as id is unique
+            
+            if (include != null)
+                query = include(query);
+
+            return await query.FirstOrDefaultAsync(e => e.id == id);
         }
 
         public async Task AddAsync(TEntity entity)

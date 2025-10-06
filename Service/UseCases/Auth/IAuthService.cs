@@ -9,5 +9,6 @@ namespace Application.UseCases.Auth
     public interface IAuthService
     {
         public string GetLoggedUserName();
+        public string GetLoggedId();
     }
 }

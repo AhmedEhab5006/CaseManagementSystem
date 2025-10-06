@@ -803,5 +803,6 @@ namespace Infrastrcuture.Database
         public DbSet<LegalClaim> LegalClaims { get; set; }
         public DbSet<Litigant> Litigants { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
+        public DbSet<Lawyer> Lawyers { get; set; }
     }
 }

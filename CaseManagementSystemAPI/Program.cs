@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.Repositories;
 using Application.Repositories.Auth;
+using Application.Repositories.Users;
 using Application.UseCases;
 using Application.UseCases.Auth;
 using AutoMapper;
@@ -10,6 +11,7 @@ using Infrastrcuture.Database;
 using Infrastrcuture.Mappers;
 using Infrastrcuture.Repositories;
 using Infrastrcuture.Repositories.Auth;
+using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -73,6 +75,8 @@ internal class Program
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<ICaseService, CaseService>();
+        builder.Services.AddScoped<ICaseService, CaseService>();
+        builder.Services.AddScoped<ILawyerRepository, LawyerRepository>();
         builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.Configure<DataProtectionTokenProviderOptions>(opt =>

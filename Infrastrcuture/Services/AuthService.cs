@@ -12,6 +12,14 @@ namespace Infrastrcuture.Services
     public class AuthService(IHttpContextAccessor _httpContextAccessor) : IAuthService
 
     {
+        public string GetLoggedId()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var id = user.FindFirst("Id")?.Value.ToString();
+
+            return id;
+        }
+
         public string GetLoggedUserName()
         {
             var user = _httpContextAccessor.HttpContext?.User;
