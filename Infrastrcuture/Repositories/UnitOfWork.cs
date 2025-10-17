@@ -1,6 +1,7 @@
 ﻿using Application.Repositories;
 using Application.Repositories.CaseRepositories;
 using Application.Repositories.CourtRepositories;
+using AutoMapper;
 using Infrastrcuture.Database;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.CourtRepositories;
@@ -37,13 +38,14 @@ namespace Infrastrcuture.Repositories
         #endregion
 
         private readonly ApplicationDbContext _dbContext;
+        private readonly IMapper _mapper;
 
         public UnitOfWork(ApplicationDbContext dbContext)
         {
             #region Case Repositories Initialization
             
             _caseRepository = new Lazy<ICaseRepository>(() => new CaseRepository(dbContext));
-            _caseAssignmentRepository = new Lazy<ICaseAssignmentRepository>(() => new CaseAssignmentRepository(dbContext));
+            _caseAssignmentRepository = new Lazy<ICaseAssignmentRepository>(() => new CaseAssignmentRepository(dbContext , _mapper));
             _caseEventRepository = new Lazy<ICaseEventRepository>(() => new CaseEventRepository(dbContext));
             _caseLitigantRepository = new Lazy<ICaseLitigantRepository>(() => new CaseLitigantRepository(dbContext));
             _caseLitigantRoleRepository = new Lazy<ICaseLitigantRoleRepository>(() => new CaseLitigantRoleRepository(dbContext));

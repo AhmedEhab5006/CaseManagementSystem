@@ -10,6 +10,7 @@ namespace Application.Repositories.CourtRepositories
 {
     public interface ICourtRepository : IGenericRepository<Court>
     {
+        public IQueryable<Court> GetAll();
 
     }
 }

@@ -4,6 +4,7 @@ using Application.Repositories.Auth;
 using Application.Repositories.Users;
 using Application.UseCases;
 using Application.UseCases.Auth;
+using Application.UseCases.LawyerService;
 using AutoMapper;
 using CaseManagementSystemAPI.Middlewares;
 using Infrastrcuture.Auth;
@@ -11,6 +12,7 @@ using Infrastrcuture.Database;
 using Infrastrcuture.Mappers;
 using Infrastrcuture.Repositories;
 using Infrastrcuture.Repositories.Auth;
+using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,11 +28,9 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // ------------------- Add Services -------------------
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
 
-        // Swagger with JWT Support
         builder.Services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new() { Title = "Case Management System", Version = "v1" });
@@ -59,7 +59,6 @@ internal class Program
             });
         });
 
-        // ------------------- Application / Infrastructure -------------------
         builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddScoped<SendOTPUseCase>();
         builder.Services.AddMemoryCache();
@@ -77,16 +76,36 @@ internal class Program
         builder.Services.AddScoped<ICaseService, CaseService>();
         builder.Services.AddScoped<ICaseService, CaseService>();
         builder.Services.AddScoped<ILawyerRepository, LawyerRepository>();
+        builder.Services.AddScoped<ILawyerService, LawyerService>();
+        var csvFilePath = Path.Combine(
+            Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
+            "Service",
+            "AppData",
+            "Oman_Locations_Governates_Wallyats_Villages.csv"
+        );
+
+        var countriesCsvFilePath = Path.Combine(
+                 Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
+                "Service",
+                "AppData",
+                "countries.csv"
+        );
+
+        builder.Services.AddSingleton<IGetOmaniGovernatesService>(sp =>
+            new GetOmanGovernatesService(csvFilePath));
+
+        builder.Services.AddSingleton<IGetCountriesService>(sp =>
+            new GetCountriesService(countriesCsvFilePath));
+
+
         builder.Services.AddAutoMapper(typeof(MappingProfile));
 
         builder.Services.Configure<DataProtectionTokenProviderOptions>(opt =>
             opt.TokenLifespan = TimeSpan.FromMinutes(15));
 
-        // ------------------- DbContext -------------------
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
 
-        // ------------------- Identity -------------------
         builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>(options =>
         {
             options.Password.RequireDigit = false;
@@ -100,7 +119,6 @@ internal class Program
 
         var publicKeyPath = Path.Combine(Directory.GetCurrentDirectory(), "Security", "public_key.pem");
 
-        // Load Public Key content
         var publicKeyText = File.ReadAllText(publicKeyPath);
         var rsa = RSA.Create();
         rsa.ImportFromPem(publicKeyText);
@@ -128,7 +146,18 @@ internal class Program
             options.AddPolicy("AdminOnly", policy =>
                      policy.RequireClaim("Role", "Admin"));
         });
-        // ------------------- Build app -------------------
+
+
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader());
+        });
+
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
@@ -139,13 +168,11 @@ internal class Program
 
         app.UseHttpsRedirection();
 
-        // ------------------- Middleware -------------------
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.UseMiddleware<GlobalExceptionHandler>();
 
-        // Logging to debug Authorization issues
         app.Use(async (context, next) =>
         {
             Console.WriteLine($"Path: {context.Request.Path}");
@@ -153,6 +180,8 @@ internal class Program
             Console.WriteLine($"Authenticated: {context.User?.Identity?.IsAuthenticated}");
             await next();
         });
+        app.UseCors("AllowAll");
+
 
         app.MapControllers();
         app.Run();

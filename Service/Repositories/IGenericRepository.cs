@@ -17,6 +17,7 @@ namespace Application.Repositories
             Task<TEntity?> GetByIdAsync(Guid id, bool asNotracking = false 
                 , Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null);
             Task AddAsync(TEntity entity);
+            Task AddRangeAsync(IEnumerable<TEntity> entitiesList);
             void Update(TEntity entity);
             void Remove(TEntity entity);
         }

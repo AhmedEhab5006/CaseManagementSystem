@@ -3,6 +3,7 @@ using Application.Dto_s.CaseDtos;
 using AutoMapper;
 using Domain.Entites;
 using Infrastrcuture.Auth;
+using Infrastrcuture.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +55,6 @@ namespace Infrastrcuture.Mappers
                 .ForMember(dest => dest.court, opt => opt.Ignore()) // Navigation property
                 .ForMember(dest => dest.caseType, opt => opt.Ignore()) // Navigation property
                 .ForMember(dest => dest.caseTopic, opt => opt.Ignore()) // Navigation property
-                .ForMember(dest => dest.CourtGrade, opt => opt.Ignore()) // Navigation property
                 .ForMember(dest => dest.caseDocuments, opt => opt.Ignore()) // Collection navigation property
                 .ForMember(dest => dest.assignments, opt => opt.Ignore()) // Collection navigation property
                 .ForMember(dest => dest.claims, opt => opt.Ignore()) // Collection navigation property
@@ -240,6 +240,35 @@ namespace Infrastrcuture.Mappers
 
             #endregion
 
+            #region Lawyer Entity Mapping
+
+            CreateMap<Lawyer, LawyerReadDto>()
+              .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName)) // assuming BaseEntity has CreatedAt
+              .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.displayName))
+              .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+              .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
+
+
+            #endregion
+
+            #region Lawyer Entity Full data mapping
+
+            CreateMap<Lawyer, LawyerFullDataReadDto>()
+            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName)) // assuming BaseEntity has CreatedAt
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.displayName))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.creationDate, opt => opt.MapFrom(src => src.CreatedAt.ToString("yyyy-MM-dd")))
+            .ForMember(dest => dest.creator, opt => opt.MapFrom(src => src.CreateedBy))
+            .ForMember(dest => dest.modificationDate, opt => opt.MapFrom(src => src.ModifiedAt != null ? src.ModifiedAt.Value.ToString("yyyy-MM-dd") : "لم يتم اضافة تعديلات مؤخرا"))
+            .ForMember(dest => dest.modifier, opt => opt.MapFrom(src => src.ModifiedBy != null ? src.ModifiedBy.ToString() : "لم يتم اضافة تعديلات مؤخرا"))
+            .ForMember(dest => dest.phoneNumber, opt => opt.MapFrom(src => src.PhoneNumber != null ? src.PhoneNumber : "رقم الهاتف غير مسجل لدينا"))
+            .ForMember(dest => dest.numberOfClosedCases, opt => opt.MapFrom(src => src.numberOfEndedCases))
+            .ForMember(dest => dest.numberOfPendingCases, opt => opt.MapFrom(src => src.numberOfPendingCases))
+            .ForMember(dest => dest.numberOfCurrentCases, opt => opt.MapFrom(src => src.numberOfCurrentCases));
+
+
+            #endregion
         }
     }
 }

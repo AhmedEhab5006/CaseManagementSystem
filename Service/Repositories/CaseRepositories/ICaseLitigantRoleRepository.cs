@@ -11,5 +11,7 @@ namespace Application.Repositories.CaseRepositories
 {
     public interface ICaseLitigantRoleRepository : IGenericRepository<CaseLitigantRole>
     {
+        public IQueryable<CaseLitigantRole> GetAll();
+
     }
 }

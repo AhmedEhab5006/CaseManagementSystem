@@ -36,8 +36,6 @@ namespace Application.Dto_s.CaseDtos
         public Guid caseTypeId { get; set; }
         [Required(ErrorMessage = "Case Topic Can't be Empty | لا يمكن ان يكون موضوع القضية فارغ")]
         public Guid caseTopicId { get; set; }
-        [Required(ErrorMessage = "Court Grade Can't be Empty | لا يمكن ان يكون درجة المحكمة فارغ")]
-        public Guid courtGradeId { get; set; }
-
+      
     }
 }

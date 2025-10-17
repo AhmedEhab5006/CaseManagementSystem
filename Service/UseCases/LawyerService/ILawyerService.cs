@@ -6,12 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Repositories.Users
+namespace Application.UseCases.LawyerService
 {
-    public interface ILawyerRepository
+    public interface ILawyerService
     {
-        public Task<LawyerFullDataReadDto?> GetLawyerByIdAsync(string id);
-        public Task<LawyerReadDto?> GetLawyerPrimaryDataByIdAsync(string id);
+        public Task<LawyerReadDto?> GetLawyerPrimaryDataById(string id);
         public Task<IEnumerable<CaseDropDownMenuGetDto?>> GetLawyersForDropDownMenuAsync();
     }
 }

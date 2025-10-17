@@ -11,5 +11,6 @@ namespace Application.Repositories.CaseRepositories
 {
     public interface ICaseTypeRepository : IGenericRepository<CaseType>
     {
+        public IQueryable<CaseType> GetAll();
     }
 }

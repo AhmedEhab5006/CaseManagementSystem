@@ -13,7 +13,7 @@ namespace Infrastrcuture.Repositories
 {
     public class GenericRepository<TEntity>(ApplicationDbContext _context) : IGenericRepository<TEntity> where TEntity : BaseEntity
     {
-        public async Task<PagedResult<TEntity>> GetAllAsync(int pageNumber, int pageSize 
+        public async Task<PagedResult<TEntity>> GetAllAsync(int pageNumber , int pageSize 
             , bool asNoTracking = true , Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null)
         {
             IQueryable<TEntity> query = _context.Set<TEntity>()
@@ -58,6 +58,13 @@ namespace Infrastrcuture.Repositories
             await _context.Set<TEntity>().AddAsync(entity);
             // SaveChanges will be called in UnitOfWork
         }
+
+        public async Task AddRangeAsync(IEnumerable<TEntity> entitiesList)
+        {
+            await _context.Set<TEntity>().AddRangeAsync(entitiesList);
+            // SaveChanges will be called in UnitOfWork
+        }
+
         public void Update(TEntity entity)
         {
             _context.Set<TEntity>().Update(entity);

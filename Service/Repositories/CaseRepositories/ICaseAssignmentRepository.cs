@@ -1,4 +1,6 @@
-﻿using Domain.Entites;
+﻿using Application.Commons;
+using Application.Dto_s;
+using Domain.Entites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,8 @@ using static Application.Repositories.IGenericRepository;
 
 namespace Application.Repositories.CaseRepositories
 {
-    public interface ICaseAssignmentRepository : IGenericRepository<CaseAssignment>
+    public interface ICaseAssignmentRepository : IGenericRepository<CaseAssignment> 
     {
+       public Task<PagedResult<LawyerReadDto>> GetCaseLawyersAsync(Guid caseId , int pageNumber, int pageSize, bool asNoTracking = false);
     }
 }

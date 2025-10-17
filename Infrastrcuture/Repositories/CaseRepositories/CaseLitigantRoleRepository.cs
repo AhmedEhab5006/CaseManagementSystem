@@ -1,6 +1,7 @@
 ﻿using Application.Repositories.CaseRepositories;
 using Domain.Entites;
 using Infrastrcuture.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,14 @@ namespace Infrastrcuture.Repositories.CaseRepositories
 {
     public class CaseLitigantRoleRepository(ApplicationDbContext _context) : GenericRepository<CaseLitigantRole>(_context), ICaseLitigantRoleRepository
     {
+        public IQueryable<CaseLitigantRole> GetAll()
+        {
+            var data = _context.CasesLitigantRoles
+                                    .AsNoTracking()
+                                    .Where(a => !a.isDeleted)
+                                    .AsQueryable();
+
+            return data;
+        }
     }
 }

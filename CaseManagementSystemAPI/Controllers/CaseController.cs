@@ -1,4 +1,5 @@
 ﻿using Application.Commons;
+using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
 using Application.UseCases;
 using Application.UseCases.Auth;
@@ -34,27 +35,21 @@ namespace CaseManagementSystemAPI.Controllers
 
             if (result == Domain.Enums.CaseAddServiceValidataion.TypeWasnnotFound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Case Type Wasn't Found | نوع القضية المطلوب غير موجود"));
             }
 
 
             if (result == Domain.Enums.CaseAddServiceValidataion.TopicWasnnotFound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Case Topic Type Wasn't Found | موضوع القضية المطلوب غير موجود"));
             }
 
             if (result == Domain.Enums.CaseAddServiceValidataion.CourtWasnnotFound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Court Wasn't Found | المحكمة المطلوبة غير موجودة"));
-            }
-
-            if (result == Domain.Enums.CaseAddServiceValidataion.CourtGradeWasnotFound)
-            {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
-                    data: "Desired Court Grade Wasn't Found | درجة المحكمة المطلوبة غير موجودة"));
             }
 
             return BadRequest(new APIResponseHandler<string>(400, "Bad Request", data: "An Error Occurred! | حدث خطأ ما"));
@@ -64,46 +59,52 @@ namespace CaseManagementSystemAPI.Controllers
 
         [HttpPost("Assign-Case-To-Lawyer")]
         [Authorize(Roles = "Registration Officer")]
-        public async Task<IActionResult> AssignCaseToLawyer(CaseAssignmentDto caseAssignment)
+        public async Task<IActionResult> AssignCaseToLawyer(IEnumerable<CaseAssignmentDto> caseAssignments)
         {
-
-            caseAssignment.createdBy = _authService.GetLoggedUserName();
-            caseAssignment.assignerId = _authService.GetLoggedId();
-
-            var response = await _caseService.AssignCaseToLawyerAsync(caseAssignment);
-
-
-
-            if (response == Domain.Enums.CaseAssignmentServiceValidatation.done)
+            if (caseAssignments == null || !caseAssignments.Any())
             {
-                return Ok(new APIResponseHandler<string>(200, "Success", data: "Case Was Sucssefully Assigned to the lawyer | تم اسناد القضية بنجاح للمحامي"));
-
+                return BadRequest(new APIResponseHandler<string>(
+                    400, "Bad Request",
+                    data: "No assignments provided | لم يتم إرسال أي بيانات إسناد"));
             }
 
-            if (response == Domain.Enums.CaseAssignmentServiceValidatation.lawyerwasnnotfound)
-            {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found", 
-                    data: "Desired Lawyer Wasn't Found | المحامي المطلوب غير موجود"));
+            var createdBy = _authService.GetLoggedUserName();
+            var assignerId = _authService.GetLoggedId();
 
+            // ضيف بيانات الـ CreatedBy و الـ AssignerId لكل عنصر
+            foreach (var assignment in caseAssignments)
+            {
+                assignment.createdBy = createdBy;
+                assignment.assignerId = assignerId;
             }
 
+            var response = await _caseService.AssignCaseToLawyerAsync(caseAssignments);
 
-            if (response == Domain.Enums.CaseAssignmentServiceValidatation.casewasnnotfound)
+            return response switch
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
-                    data: "Desired Case Wasn't Found | القضية المطلوبة غير موجودة"));
+                Domain.Enums.CaseAssignmentServiceValidatation.done =>
+                    Ok(new APIResponseHandler<string>(
+                        200, "Success",
+                        data: "Case(s) successfully assigned to lawyer(s) | تم إسناد القضايا بنجاح للمحامي")),
 
-            }
+                Domain.Enums.CaseAssignmentServiceValidatation.lawyerwasnnotfound =>
+                    NotFound(new APIResponseHandler<string>(
+                        404, "Not Found",
+                        data: "Desired lawyer wasn't found | المحامي المطلوب غير موجود")),
 
+                Domain.Enums.CaseAssignmentServiceValidatation.casewasnnotfound =>
+                    NotFound(new APIResponseHandler<string>(
+                        404, "Not Found",
+                        data: "Desired case wasn't found | القضية المطلوبة غير موجودة")),
 
-            else
-            {
-                return BadRequest(new APIResponseHandler<string>(400, "Bad Request",
-                    data: "An Error Occurred | حدث خطأ ما"));
-
-            }
-
+                _ =>
+                    BadRequest(new APIResponseHandler<string>(
+                        400, "Bad Request",
+                        data: "An error occurred | حدث خطأ ما"))
+            };
         }
+
+        
 
 
         [HttpPost("Add-Case-Topic")]
@@ -161,14 +162,21 @@ namespace CaseManagementSystemAPI.Controllers
 
         [HttpPost("Add-Litigant")]
         [Authorize(Roles = "Registration Officer")]
-        public async Task<IActionResult> AddLitigant(LitigantDto litigantAddDto)
+        public async Task<IActionResult> AddLitigant(List<LitigantDto> litigantAddDto)
         {
-            litigantAddDto.createdBy = _authService.GetLoggedUserName();
-
-            if (await _caseService.AddLitigantAsync(litigantAddDto))
+            foreach (var litigant in litigantAddDto)
             {
-                return Ok(new APIResponseHandler<string>(200, "Success",
-                    data: "Case Litigant Was Sucssefully Added | تمت اضافة طرف القضية بنجاح"));
+                litigant.createdBy = _authService.GetLoggedUserName();
+
+            }
+
+            var guids = await _caseService.AddLitigantsRangeAsync(litigantAddDto);
+
+
+            if (guids.Count > 0)
+            {
+                return Ok(new APIResponseHandler<List<Guid>>(200, "Success",
+                    data: guids));
 
             }
 
@@ -179,11 +187,15 @@ namespace CaseManagementSystemAPI.Controllers
 
         [HttpPost("Add-Case-Litigant")]
         [Authorize(Roles = "Registration Officer")]
-        public async Task<IActionResult> AddCaseLitigant(CaseLtitgantDto caseLitigantAddDto)
+        public async Task<IActionResult> AddCaseLitigant(List<CaseLtitgantDto> caseLitigantAddDto)
         {
-            caseLitigantAddDto.createdBy = _authService.GetLoggedUserName();
+            foreach (var litigant in caseLitigantAddDto)
+            {
+                litigant.createdBy = _authService.GetLoggedUserName();
 
-            var response = await _caseService.AddCaseLitigantAsync(caseLitigantAddDto);
+            }
+
+            var response = await _caseService.AddCaseLitigantsRangeAsync(caseLitigantAddDto);
 
 
 
@@ -197,7 +209,7 @@ namespace CaseManagementSystemAPI.Controllers
 
             if (response == Domain.Enums.CaseLitigantAddVaildatation.casewasnotfound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Case Wasn't Found | القضية المطلوبة غير موجودة"));
 
             }
@@ -205,14 +217,14 @@ namespace CaseManagementSystemAPI.Controllers
 
             if (response == Domain.Enums.CaseLitigantAddVaildatation.litigantwasnotfound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Litigant Wasn't Found | الطرف المطلوب غير موجود"));
 
             }
 
             if (response == Domain.Enums.CaseLitigantAddVaildatation.litigantrolewasnotfound)
             {
-                return NotFound(new APIResponseHandler<string>(404, "Not Found",
+                return BadRequest(new APIResponseHandler<string>(404, "Not Found",
                     data: "Desired Litigant Role Wasn't Found | صفة الطرف المطلوبة غير موجودة"));
 
             }
@@ -242,7 +254,7 @@ namespace CaseManagementSystemAPI.Controllers
                     data: records));
             }
 
-            return NotFound(new APIResponseHandler<string>(404, "Not Found",
+            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
                 data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
         }
 
@@ -259,7 +271,7 @@ namespace CaseManagementSystemAPI.Controllers
                    data: result));
             }
 
-            return NotFound(new APIResponseHandler<string>(404, "Not Found",
+            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
         }
 
@@ -276,7 +288,7 @@ namespace CaseManagementSystemAPI.Controllers
                     data: result));
             }
 
-            return NotFound(new APIResponseHandler<string>(404, "Not Found",
+            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
                 data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
 
          
@@ -295,12 +307,121 @@ namespace CaseManagementSystemAPI.Controllers
                     data: result));
             }
 
-            return NotFound(new APIResponseHandler<string>(404, "Not Found",
+            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
                 data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
 
 
         }
 
+        [HttpGet("Get-Case-Lawyers-Primary-Data-{caseId}-{pageNumber}-{pageSize}")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCaseLawyersPrimaryData([FromRoute] Guid caseId , [FromRoute] int pageNumber , [FromRoute] int pageSize)
+        {
+            var result = await _caseService.GetCaseLawyersAsync(caseId , pageNumber , pageSize);
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<PagedResult<LawyerReadDto>>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
+
+        [HttpGet("Get-Case-Lawyers-Full-Data-{lawyerId}")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCaseLawyersFullData([FromRoute] string lawyerId)
+        {
+            var result = await _caseService.GetCaseLawyersFullDataAsync(lawyerId);
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<LawyerFullDataReadDto>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(404, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
+
+
+        [HttpGet("Get-Case-Types-For-Drop-Down-List")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCaseTypesForDropDownMenu()
+        {
+            var result = await _caseService.GetCaseTypesForDropDownMenuAsync();
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<IEnumerable<CaseDropDownMenuGetDto>>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(404, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
+
+        [HttpGet("Get-Case-Topics-For-Drop-Down-List")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCaseTopicsForDropDownMenu()
+        {
+            var result = await _caseService.GetCaseTopicsForDropDownMenuAsync();
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<IEnumerable<CaseDropDownMenuGetDto>>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(404, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
+
+        [HttpGet("Get-Courts-For-Drop-Down-List")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCourtsForDropDownMenu()
+        {
+            var result = await _caseService.GetCourtsForDropDownMenuAsync();
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<IEnumerable<CaseDropDownMenuGetDto>>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(404, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
+
+
+        [HttpGet("Get-Litigants-Roles-For-Drop-Down-List")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetLitigantsRolesForDropDownMenu()
+        {
+            var result = await _caseService.GetLitigantsRoleDropDownMenuAsync();
+
+            if (result is not null)
+            {
+                return Ok(new APIResponseHandler<IEnumerable<CaseDropDownMenuGetDto>>(200, "Success",
+                    data: result));
+            }
+
+            return BadRequest(new APIResponseHandler<string>(404, "Not Found",
+                data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+
+
+        }
 
         #endregion
     }

@@ -33,9 +33,6 @@ namespace Infrastrcuture.Services
                 client.Credentials = new NetworkCredential(smtpSettings["UserName"], smtpSettings["Password"]);
                 client.EnableSsl = bool.Parse(smtpSettings["EnableSsl"]);
 
-                var helwanLogo = "CaseManagementSystem\\Domain\\Assets\\helwan-logo.png";
-                var lang = "ar";
-                var direction = "rtl";
 
                 var mailMessage = new MailMessage
                 {

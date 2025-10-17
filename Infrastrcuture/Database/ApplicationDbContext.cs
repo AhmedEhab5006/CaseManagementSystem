@@ -520,7 +520,6 @@ namespace Infrastrcuture.Database
                     courtId = Guid.Parse("44444444-4444-4444-4444-444444444444"),
                     caseTypeId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     caseTopicId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-                    courtGradeId = Guid.Parse("33333333-3333-3333-3333-333333333333"),
                     createdBy = "System",
                     createdAt = new DateTime(2024, 01, 15),
                     isDeleted = false,
@@ -543,7 +542,6 @@ namespace Infrastrcuture.Database
                     courtId = Guid.Parse("55555555-5555-5555-5555-555555555555"),
                     caseTypeId = Guid.Parse("77777777-7777-7777-7777-777777777777"),
                     caseTopicId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
-                    courtGradeId = Guid.Parse("33333333-3333-3333-3333-333333333333"),
                     createdBy = "System",
                     createdAt = new DateTime(2024, 02, 20),
                     isDeleted = false,
@@ -792,7 +790,7 @@ namespace Infrastrcuture.Database
         public DbSet<CaseDocument> CasesDocuments { get; set; }
         public DbSet<CaseEvent> CasesEvents { get; set; }
         public DbSet<CaseLitigant> CasesLitigants { get; set; }
-        public DbSet<CaseLitigant> CasesLitigantRoles { get; set; }
+        public DbSet<CaseLitigantRole> CasesLitigantRoles { get; set; }
         public DbSet<CaseTopic> CasesTopics { get; set; }
         public DbSet<CaseType> CasesTypes { get; set; }
         public DbSet<Court> Courts { get; set; }

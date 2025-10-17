@@ -26,8 +26,6 @@ namespace Domain.Entites
         public CaseType? caseType { get; set; }
         public Guid caseTopicId { get; set; }
         public CaseTopic? caseTopic { get; set; }
-        public Guid courtGradeId { get; set; }
-        public CourtGrade? CourtGrade { get; set; }
         public ICollection<CaseDocument>? caseDocuments { get; set; }
         public ICollection<CaseAssignment>? assignments { get; set; }
         public ICollection<LegalClaim>? claims { get; set; }

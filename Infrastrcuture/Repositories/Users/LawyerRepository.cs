@@ -1,5 +1,7 @@
 ﻿using Application.Dto_s;
+using Application.Dto_s.CaseDtos;
 using Application.Repositories.Users;
+using AutoMapper;
 using Infrastrcuture.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.Users
 {
-    public class LawyerRepository(ApplicationDbContext _applicationDbContext) : ILawyerRepository
+    public class LawyerRepository(ApplicationDbContext _applicationDbContext , IMapper _mapper) : ILawyerRepository
     {
-        public async Task<LawyerReadDto?> GetLawyerByIdAsync(string id)
+        public async Task<LawyerFullDataReadDto?> GetLawyerByIdAsync(string id)
         {
             var lawyerEntity = await _applicationDbContext.Lawyers
                                                     .AsNoTracking()        
@@ -21,11 +23,47 @@ namespace Infrastrcuture.Repositories.Users
 
             if (lawyerEntity is not null)
             {
-                return new LawyerReadDto
-                {
-                    Id = lawyerEntity.Id,
-                    Name = lawyerEntity.displayName is not null ? lawyerEntity.displayName : lawyerEntity.UserName
-                };
+               var returned = _mapper.Map<LawyerFullDataReadDto>(lawyerEntity);
+               return returned;
+            }
+
+            return null;
+        }
+
+        public async Task<LawyerReadDto?> GetLawyerPrimaryDataByIdAsync(string id)
+        {
+            var lawyerEntity = await _applicationDbContext.Lawyers
+                                                               .AsNoTracking()
+                                                               .Where(a => a.Id == id)
+                                                               .SingleOrDefaultAsync();
+
+            if (lawyerEntity is not null)
+            {
+                var returned = _mapper.Map<LawyerReadDto>(lawyerEntity);
+                return returned;
+            }
+
+            return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto?>> GetLawyersForDropDownMenuAsync()
+        {
+            var lawyerEntity = await _applicationDbContext.Lawyers
+                                                                          .AsNoTracking()
+                                                                          .ToListAsync();
+            if (lawyerEntity is not null)
+            {
+                var returned = new List<CaseDropDownMenuGetDto?>(); 
+                
+                foreach (var item in lawyerEntity) {
+                    var addedItem = new CaseDropDownMenuGetDto
+                    {
+                        Id = new Guid(item.Id),
+                        Name = item.displayName
+                    };
+                    returned.Add(addedItem);
+                }
+                return returned;
             }
 
             return null;

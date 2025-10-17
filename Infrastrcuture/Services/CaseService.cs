@@ -1,7 +1,9 @@
 ﻿using Application.Commons;
+using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
 using Application.Interfaces;
 using Application.Repositories;
+using Application.Repositories.CaseRepositories;
 using Application.Repositories.Users;
 using Application.UseCases;
 using AutoMapper;
@@ -11,74 +13,57 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastrcuture.Services
 {
-    public class CaseService(IMapper _mapper , IUnitOfWork _unitOfWork , 
+    public class CaseService(IMapper _mapper, IUnitOfWork _unitOfWork,
                                 ILawyerRepository _lawyerRepository, ICacheService _cacheService) : ICaseService
     {
 
         #region Add Methods
 
-        public async Task<CaseLitigantAddVaildatation> AddCaseLitigantAsync(CaseLtitgantDto litigantDto)
+        public async Task<CaseLitigantAddVaildatation> AddCaseLitigantsRangeAsync(List<CaseLtitgantDto> litigantDtos)
         {
+            if (litigantDtos == null || litigantDtos.Count == 0)
+                return CaseLitigantAddVaildatation.error;
 
-            var caseLitigantEntity = _mapper.Map<CaseLitigant>(litigantDto);
+            var caseIdFromCache = _cacheService.Get("currentCaseId");
+            Guid? caseId = caseIdFromCache is not null ? new Guid(caseIdFromCache) : null;
 
-            caseLitigantEntity.id = Guid.NewGuid();
-            caseLitigantEntity.createdAt = DateTime.UtcNow;
-            caseLitigantEntity.isDeleted = false;
-            caseLitigantEntity.versionNo = 1;
+            var caseLitigantEntities = new List<CaseLitigant>();
 
-
-            var caseId = _cacheService.Get("currentCaseId");
-            
-            if (caseId is not null)
+            foreach (var dto in litigantDtos)
             {
-                caseLitigantEntity.caseId = new Guid(caseId);
+                var entity = _mapper.Map<CaseLitigant>(dto);
+                entity.id = Guid.NewGuid();
+                entity.createdAt = DateTime.UtcNow;
+                entity.isDeleted = false;
+                entity.versionNo = 1;
+                entity.caseId = caseId ?? dto.caseId;
+
+                // تحقق من وجود الكيانات المرتبطة
+                var caseEntity = await _unitOfWork.CaseRepository.GetByIdAsync(entity.caseId, true);
+                if (caseEntity is null)
+                    return CaseLitigantAddVaildatation.casewasnotfound;
+
+                var litigant = await _unitOfWork.LitigantRepository.GetByIdAsync(entity.litigantId, true);
+                if (litigant is null)
+                    return CaseLitigantAddVaildatation.litigantwasnotfound;
+
+                var role = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(entity.roleId, true);
+                if (role is null)
+                    return CaseLitigantAddVaildatation.litigantrolewasnotfound;
+
+                caseLitigantEntities.Add(entity);
             }
 
-            else
-            {
-                caseLitigantEntity.caseId = litigantDto.caseId;
-
-            }
-
-
-            var Case = await _unitOfWork.CaseRepository.GetByIdAsync(caseLitigantEntity.caseId, true);
-            if (Case is null)
-            {
-                return CaseLitigantAddVaildatation.casewasnotfound;
-            }
-
-
-            var litigant = await _unitOfWork.LitigantRepository.GetByIdAsync(caseLitigantEntity.litigantId, true);
-            if (litigant is null)
-            {
-                return CaseLitigantAddVaildatation.litigantwasnotfound;
-            }
-
-            var litigantRole = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(caseLitigantEntity.roleId, true);
-            if (litigantRole is null)
-            {
-                return CaseLitigantAddVaildatation.litigantrolewasnotfound;
-            }
-
-
-
-
-
-
-            await _unitOfWork.CaseLitigantRepository.AddAsync(caseLitigantEntity);
+            await _unitOfWork.CaseLitigantRepository.AddRangeAsync(caseLitigantEntities);
 
             var result = await _unitOfWork.SaveChangesAsync();
 
             if (result > 0)
-            {
                 return CaseLitigantAddVaildatation.done;
-            }
 
             return CaseLitigantAddVaildatation.error;
-            ;
         }
-        
+
 
         public async Task<bool> AddCaseLitigantRoleAsync(CaseLitigantRoleDto caseLitigantRoleDto)
         {
@@ -97,63 +82,57 @@ namespace Infrastrcuture.Services
 
         public async Task<CaseAddServiceValidataion> AddCasePrimaryData(CaseAddDto caseAddDto)
         {
-         
-                var caseEntity = _mapper.Map<Case>(caseAddDto);
 
-                caseEntity.id = Guid.NewGuid();
-                caseEntity.createdAt = DateTime.UtcNow;
-                caseEntity.isDeleted = false;
-                caseEntity.versionNo = 1;
+            var caseEntity = _mapper.Map<Case>(caseAddDto);
 
-
-                var caseType = await _unitOfWork.CaseTypeRepository.GetByIdAsync(caseEntity.caseTypeId , true); 
-                if(caseType is null)
-                {
-                    return CaseAddServiceValidataion.TypeWasnnotFound;
-                }
+            caseEntity.id = Guid.NewGuid();
+            caseEntity.createdAt = DateTime.UtcNow;
+            caseEntity.isDeleted = false;
+            caseEntity.versionNo = 1;
 
 
-                var caseTopic = await _unitOfWork.CaseTopicRepository.GetByIdAsync(caseEntity.caseTopicId , true);
-                if (caseTopic is null)
-                {
-                    return CaseAddServiceValidataion.TopicWasnnotFound;
-                }
-
-                 var court = await _unitOfWork.CourtRepository.GetByIdAsync(caseEntity.courtId , true);
-                 if (court is null)
-                 {
-                    return CaseAddServiceValidataion.CourtWasnnotFound;
-                 }
-
-            var courtGrade = await _unitOfWork.CourtGradeRepository.GetByIdAsync(caseEntity.courtGradeId, true);
-            if (courtGrade is null)
+            var caseType = await _unitOfWork.CaseTypeRepository.GetByIdAsync(caseEntity.caseTypeId, true);
+            if (caseType is null)
             {
-                return CaseAddServiceValidataion.CourtGradeWasnotFound;
+                return CaseAddServiceValidataion.TypeWasnnotFound;
+            }
+
+
+            var caseTopic = await _unitOfWork.CaseTopicRepository.GetByIdAsync(caseEntity.caseTopicId, true);
+            if (caseTopic is null)
+            {
+                return CaseAddServiceValidataion.TopicWasnnotFound;
+            }
+
+            var court = await _unitOfWork.CourtRepository.GetByIdAsync(caseEntity.courtId, true);
+            if (court is null)
+            {
+                return CaseAddServiceValidataion.CourtWasnnotFound;
             }
 
 
 
-            _cacheService.Set("currentCaseId" , caseEntity.id.ToString(), TimeSpan.FromMinutes(30));
-            
-                
-            
-                await _unitOfWork.CaseRepository.AddAsync(caseEntity);
+            _cacheService.Set("currentCaseId", caseEntity.id.ToString(), TimeSpan.FromHours(5));
 
-                var result = await _unitOfWork.SaveChangesAsync();
 
-                if (result > 0)
+
+            await _unitOfWork.CaseRepository.AddAsync(caseEntity);
+
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result > 0)
             {
                 return CaseAddServiceValidataion.Done;
             }
 
-                return CaseAddServiceValidataion.Error;
+            return CaseAddServiceValidataion.Error;
             ;
-            }
+        }
 
         public async Task<bool> AddCaseTopicAsync(CaseTopicAddDto caseTopicDto)
         {
             var caseTopicEntity = _mapper.Map<CaseTopic>(caseTopicDto);
-            
+
             caseTopicEntity.id = Guid.NewGuid();
             caseTopicEntity.createdAt = DateTime.UtcNow;
             caseTopicEntity.isDeleted = false;
@@ -180,73 +159,84 @@ namespace Infrastrcuture.Services
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> AddLitigantAsync(LitigantDto litigantDto)
+        public async Task<List<Guid>> AddLitigantsRangeAsync(List<LitigantDto> litigantDtos)
         {
-            var litigantEntity = _mapper.Map<Litigant>(litigantDto);
+            if (litigantDtos == null || litigantDtos.Count == 0)
+                return new List<Guid>();
 
+            var litigantEntities = new List<Litigant>();
 
-            litigantEntity.id = Guid.NewGuid();
-            litigantEntity.createdAt = DateTime.UtcNow;
-            litigantEntity.isDeleted = false;
-            litigantEntity.versionNo = 1;
-
-            await _unitOfWork.LitigantRepository.AddAsync(litigantEntity);
-
-            return await _unitOfWork.SaveChangesAsync() > 0;
-        }
-
-        public async Task<CaseAssignmentServiceValidatation> AssignCaseToLawyerAsync(CaseAssignmentDto caseAssignmentDto)
-        {
-            var caseAssignment = _mapper.Map<CaseAssignment>(caseAssignmentDto);
-
-            caseAssignment.id = Guid.NewGuid();
-            caseAssignment.createdAt = DateTime.UtcNow;
-            caseAssignment.isDeleted = false;
-            caseAssignment.versionNo = 1;
-
-            var currentCaseId = _cacheService.Get("currentCaseId");
-            
-            
-            
-            
-            if (currentCaseId is not null)
+            foreach (var dto in litigantDtos)
             {
-                caseAssignment.CaseId = new Guid(currentCaseId);
+                var entity = _mapper.Map<Litigant>(dto);
+                entity.id = Guid.NewGuid();
+                entity.createdAt = DateTime.UtcNow;
+                entity.isDeleted = false;
+                entity.versionNo = 1;
 
-            }
-            else
-            {
-                caseAssignment.CaseId = caseAssignmentDto.CaseId;
-
+                litigantEntities.Add(entity);
             }
 
-            
-            var foundCase = await _unitOfWork.CaseRepository.GetByIdAsync(caseAssignment.CaseId , true);
-            
-            if (foundCase is null)
-            {
-                return CaseAssignmentServiceValidatation.casewasnnotfound;
-            }
-
-            var foundLawyer = await _lawyerRepository.GetLawyerByIdAsync(caseAssignmentDto.assignedUserId);
-            if (foundLawyer is null)
-            {
-                return CaseAssignmentServiceValidatation.lawyerwasnnotfound;
-            }
-
-            
-
-            await _unitOfWork.CaseAssignmentRepository.AddAsync(caseAssignment);
+            await _unitOfWork.LitigantRepository.AddRangeAsync(litigantEntities);
             var result = await _unitOfWork.SaveChangesAsync();
 
             if (result > 0)
             {
-                return CaseAssignmentServiceValidatation.done;
+                return litigantEntities.Select(l => l.id).ToList();
             }
 
-            return CaseAssignmentServiceValidatation.error;
-            
+            return new List<Guid>();
         }
+
+
+        public async Task<CaseAssignmentServiceValidatation> AssignCaseToLawyerAsync(IEnumerable<CaseAssignmentDto> caseAssignmentDtos)
+        {
+            if (caseAssignmentDtos == null || !caseAssignmentDtos.Any())
+                return CaseAssignmentServiceValidatation.error;
+
+            var caseAssignments = new List<CaseAssignment>();
+
+            var currentCaseId = _cacheService.Get("currentCaseId");
+
+            // Try to get the case ID once if available
+            Guid? cachedCaseId = null;
+            if (currentCaseId is not null && Guid.TryParse(currentCaseId, out var parsedId))
+                cachedCaseId = parsedId;
+
+            foreach (var dto in caseAssignmentDtos)
+            {
+                var caseAssignment = _mapper.Map<CaseAssignment>(dto);
+
+                caseAssignment.id = Guid.NewGuid();
+                caseAssignment.createdAt = DateTime.UtcNow;
+                caseAssignment.isDeleted = false;
+                caseAssignment.versionNo = 1;
+
+                caseAssignment.CaseId = cachedCaseId ?? dto.CaseId;
+
+                // Validate case existence
+                var foundCase = await _unitOfWork.CaseRepository.GetByIdAsync(caseAssignment.CaseId, true);
+                if (foundCase is null)
+                    return CaseAssignmentServiceValidatation.casewasnnotfound;
+
+                // Validate lawyer existence
+                var foundLawyer = await _lawyerRepository.GetLawyerByIdAsync(dto.assignedUserId);
+                if (foundLawyer is null)
+                    return CaseAssignmentServiceValidatation.lawyerwasnnotfound;
+
+                caseAssignments.Add(caseAssignment);
+            }
+
+            await _unitOfWork.CaseAssignmentRepository.AddRangeAsync(caseAssignments);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result > 0)
+                return CaseAssignmentServiceValidatation.done;
+
+            return CaseAssignmentServiceValidatation.error;
+        }
+
+    
 
 
         #endregion
@@ -296,6 +286,30 @@ namespace Infrastrcuture.Services
             return null;
         }
 
+        public async Task<PagedResult<LawyerReadDto?>> GetCaseLawyersAsync(Guid caseId , int pageNumber , int pageSize)
+        {
+            var data = await _unitOfWork.CaseAssignmentRepository.GetCaseLawyersAsync(caseId , pageNumber , pageSize , true);
+
+            if (data is not null)
+            {
+                return data;
+            }
+
+            return null;
+        }
+
+        public async Task<LawyerFullDataReadDto?> GetCaseLawyersFullDataAsync(string lawyerId)
+        {
+            var data = await _lawyerRepository.GetLawyerByIdAsync(lawyerId);
+
+            if (data is not null)
+            {
+                return data;
+            }
+
+            return null;
+        }
+
         public async Task<LitigantDto?> GetCaseLitigantFullDataAsync(Guid litigantId)
         {
             var result = await _unitOfWork.LitigantRepository.GetByIdAsync(litigantId);
@@ -326,6 +340,106 @@ namespace Infrastrcuture.Services
                 };
 
                 return returnedData;
+            }
+
+            return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCaseTopicsForDropDownMenuAsync()
+        {
+            var data = await _unitOfWork.CaseTopicRepository.GetAll().ToListAsync();
+
+            if (data.Count > 0)
+            {
+
+                var types = new List<CaseDropDownMenuGetDto>();
+                foreach (var type in data)
+                {
+                    var returnedData = new CaseDropDownMenuGetDto
+                    {
+                        Id = type.id,
+                        Name = type.topicName
+                    };
+
+                    types.Add(returnedData);
+                }
+
+                return types;
+            }
+
+            return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCaseTypesForDropDownMenuAsync()
+        {
+            var data = await _unitOfWork.CaseTypeRepository.GetAll().ToListAsync();
+
+            if (data.Count > 0)
+            {
+                
+                var types = new List<CaseDropDownMenuGetDto>();
+                foreach(var type in data)
+                {
+                    var returnedData = new CaseDropDownMenuGetDto
+                    {
+                        Id = type.id,
+                        Name = type.typeName
+                    };
+
+                    types.Add(returnedData);
+                } 
+
+                return types;
+            }
+
+            return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCourtsForDropDownMenuAsync()
+        {
+            var data = await _unitOfWork.CourtRepository.GetAll().ToListAsync();
+
+            if (data.Count > 0)
+            {
+
+                var types = new List<CaseDropDownMenuGetDto>();
+                foreach (var type in data)
+                {
+                    var returnedData = new CaseDropDownMenuGetDto
+                    {
+                        Id = type.id,
+                        Name = type.nameAR
+                    };
+
+                    types.Add(returnedData);
+                }
+
+                return types;
+            }
+
+            return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>?> GetLitigantsRoleDropDownMenuAsync()
+        {
+            var data = await _unitOfWork.CaseLitigantRoleRepository.GetAll().ToListAsync();
+
+            if (data.Count > 0)
+            {
+
+                var roles = new List<CaseDropDownMenuGetDto>();
+                foreach (var role in data)
+                {
+                    var returnedData = new CaseDropDownMenuGetDto
+                    {
+                        Id = role.id,
+                        Name = role.roleName
+                    };
+
+                    roles.Add(returnedData);
+                }
+
+                return roles;
             }
 
             return null;

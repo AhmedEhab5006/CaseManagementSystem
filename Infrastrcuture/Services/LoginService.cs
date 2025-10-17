@@ -65,7 +65,9 @@ namespace Infrastrcuture.Services
         {
 
             var privateKeyText = File.ReadAllText("Security/private_key.pem");
-            using var rsa = RSA.Create();
+
+            // لا تستخدم using هنا
+            var rsa = RSA.Create(2048);
             rsa.ImportFromPem(privateKeyText);
 
             var key = new RsaSecurityKey(rsa);
