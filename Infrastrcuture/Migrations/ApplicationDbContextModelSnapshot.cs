@@ -245,6 +245,9 @@ namespace Infrastrcuture.Migrations
                     b.Property<Guid>("CaseId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("DocTypeId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("FileAssetId")
                         .HasColumnType("uniqueidentifier");
 
@@ -270,22 +273,15 @@ namespace Infrastrcuture.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("docCategoryCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("docType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
 
                     b.Property<byte[]>("rowVersion")
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<int>("uniqueNo")
-                        .HasColumnType("int");
+                    b.Property<string>("uniqueNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("updatedAt")
                         .HasColumnType("datetime2");
@@ -300,37 +296,11 @@ namespace Infrastrcuture.Migrations
 
                     b.HasIndex("CaseId");
 
-                    b.ToTable("CasesDocuments");
+                    b.HasIndex("DocTypeId");
 
-                    b.HasData(
-                        new
-                        {
-                            id = new Guid("1f6c9b63-9e45-421f-915c-f45c7b65c7c7"),
-                            CaseId = new Guid("80808080-8080-8080-8080-808080808080"),
-                            VsId = "VS002",
-                            createdAt = new DateTime(2024, 1, 19, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            createdBy = "System",
-                            description = "مذكرة الدفاع الأولى",
-                            docCategoryCode = "DEFENSE",
-                            docType = "مذكرة دفاع",
-                            isDeleted = false,
-                            uniqueNo = 2,
-                            versionNo = 1
-                        },
-                        new
-                        {
-                            id = new Guid("2d2f1a45-bd6e-4c2c-aea1-7c37c68b68b6"),
-                            CaseId = new Guid("90909090-9090-9090-9090-909090909090"),
-                            VsId = "VS003",
-                            createdAt = new DateTime(2024, 2, 23, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            createdBy = "System",
-                            description = "طلب طلاق ونفقة",
-                            docCategoryCode = "DIVORCE",
-                            docType = "طلب طلاق",
-                            isDeleted = false,
-                            uniqueNo = 1,
-                            versionNo = 1
-                        });
+                    b.HasIndex("FileAssetId");
+
+                    b.ToTable("CasesDocuments");
                 });
 
             modelBuilder.Entity("Domain.Entites.CaseEvent", b =>
@@ -958,6 +928,193 @@ namespace Infrastrcuture.Migrations
                             order = "3",
                             versionNo = 1
                         });
+                });
+
+            modelBuilder.Entity("Domain.Entites.DocType", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("DocumentsTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            id = new Guid("a3d2f9e0-8c57-4a93-bb3b-f5f3f0cbe1ad"),
+                            CategoryCode = "LGL01",
+                            Type = "عريضة دعوى",
+                            createdAt = new DateTime(2025, 10, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("b1e2c7a9-3e5f-47a9-9183-9d6e5dbfa502"),
+                            CategoryCode = "LGL02",
+                            Type = "مذكرة دفاع",
+                            createdAt = new DateTime(2025, 10, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("f4c3a9e1-22bb-4c4e-bb5c-12a9e38de2cb"),
+                            CategoryCode = "EVD01",
+                            Type = "مستند إثبات",
+                            createdAt = new DateTime(2025, 10, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("e3b1f8d5-9a54-4fd9-a9d5-8e6b9c44de77"),
+                            CategoryCode = "CNT01",
+                            Type = "عقد",
+                            createdAt = new DateTime(2025, 10, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("c1f8b2b0-91d4-4e8a-b6c9-8123f58a8b6f"),
+                            CategoryCode = "ORD01",
+                            Type = "أمر قضائي",
+                            createdAt = new DateTime(2025, 10, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        });
+                });
+
+            modelBuilder.Entity("Domain.Entites.Files.FileEntity", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HashAlg")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("KeyRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Nonce")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("RemotePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageProvider")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Tag")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("WrappedDek")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("Domain.Entites.Hearing", b =>
@@ -1971,7 +2128,22 @@ namespace Infrastrcuture.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entites.DocType", "DocType")
+                        .WithMany()
+                        .HasForeignKey("DocTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entites.Files.FileEntity", "FileAsset")
+                        .WithMany()
+                        .HasForeignKey("FileAssetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Case");
+
+                    b.Navigation("DocType");
+
+                    b.Navigation("FileAsset");
                 });
 
             modelBuilder.Entity("Domain.Entites.CaseEvent", b =>

@@ -10,6 +10,7 @@ using AutoMapper;
 using Domain.Entites;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Formats.Asn1;
 
 namespace Infrastrcuture.Services
 {
@@ -43,11 +44,11 @@ namespace Infrastrcuture.Services
                 if (caseEntity is null)
                     return CaseLitigantAddVaildatation.casewasnotfound;
 
-                var litigant = await _unitOfWork.LitigantRepository.GetByIdAsync(entity.litigantId, true);
+                var litigant = await _unitOfWork.LitigantRepository.GetByIdAsync(dto.litigantId, true);
                 if (litigant is null)
                     return CaseLitigantAddVaildatation.litigantwasnotfound;
 
-                var role = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(entity.roleId, true);
+                var role = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(dto.roleId, true);
                 if (role is null)
                     return CaseLitigantAddVaildatation.litigantrolewasnotfound;
 
@@ -62,6 +63,60 @@ namespace Infrastrcuture.Services
                 return CaseLitigantAddVaildatation.done;
 
             return CaseLitigantAddVaildatation.error;
+        }
+
+
+        public async Task<CaseDocumentAddValidation> AddCaseFileAsync(CaseDocumentAddDto caseDocumentAddDto)
+        {
+
+            var caseIdFromCache = _cacheService.Get("currentCaseId");
+
+            if (caseIdFromCache is not null)
+            {
+                caseDocumentAddDto.CaseId = new Guid(caseIdFromCache);
+            }
+            
+            
+            var caseDocumentEntity = new CaseDocument
+            {
+                CaseId = caseDocumentAddDto.CaseId,
+                DocTypeId = caseDocumentAddDto.DocTypeId,
+                description = caseDocumentAddDto.description,
+                FileAssetId = caseDocumentAddDto.DocumentId,
+                VsId = caseDocumentAddDto.VsId,
+                createdAt = DateTime.UtcNow,
+                versionNo = 1
+            };
+
+            
+            var caseEntity = await _unitOfWork.CaseRepository.GetByIdAsync(caseDocumentAddDto.CaseId , true);
+            var fileEntity = await _unitOfWork.FileRepository.GetByIdAsync(caseDocumentAddDto.DocumentId , true);
+            var docTypeEntity = await _unitOfWork.CaseDocTypeRepository.GetByIdAsync(caseDocumentAddDto.DocTypeId , true);
+
+            if (caseEntity is null)
+            {
+                return CaseDocumentAddValidation.CaseWasnotFound;
+            }
+
+            if (fileEntity is null)
+            {
+                return CaseDocumentAddValidation.FileWasnotFound;
+            }
+
+            if (docTypeEntity is null)
+            {
+                return CaseDocumentAddValidation.DocumentTypeWasnotFound;
+            }
+
+
+            await _unitOfWork.CaseDocumentRepository.AddAsync(caseDocumentEntity);
+            
+            if(await _unitOfWork.SaveChangesAsync() > 0)
+            {
+                return CaseDocumentAddValidation.Added;
+            }
+
+            return CaseDocumentAddValidation.Error;
         }
 
 
@@ -444,7 +499,6 @@ namespace Infrastrcuture.Services
 
             return null;
         }
-
 
         #endregion
 

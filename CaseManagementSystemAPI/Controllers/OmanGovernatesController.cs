@@ -1,4 +1,5 @@
 ﻿using Application.UseCases;
+using CaseManagementSystemAPI.ResponseHelpers.OmaniGoverantesControllerResponseHelper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,21 +19,15 @@ namespace CaseManagementSystemAPI.Controllers
         [HttpGet("wilayats-{governorate}")]
         public IActionResult GetWilayats(string governorate)
         {
-            if (string.IsNullOrWhiteSpace(governorate))
-                return BadRequest("Governorate is required");
-
             var result = _getOmaniGovernatesService.GetAllWilayats(governorate);
-            return Ok(result);
+            return GetResponseHelper.Map(result);
         }
 
         [HttpGet("villages-{wilayat}")]
         public IActionResult GetVillages(string wilayat)
         {
-            if (string.IsNullOrWhiteSpace(wilayat))
-                return BadRequest("Wilayat is required");
-
             var result = _getOmaniGovernatesService.GetAllVillages(wilayat);
-            return Ok(result);
+            return GetResponseHelper.Map(result);
         }
     }
 }

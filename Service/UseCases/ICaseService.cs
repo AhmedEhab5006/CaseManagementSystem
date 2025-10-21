@@ -29,5 +29,6 @@ namespace Application.UseCases
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCaseTopicsForDropDownMenuAsync(); 
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCourtsForDropDownMenuAsync(); 
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetLitigantsRoleDropDownMenuAsync(); 
+        Task<CaseDocumentAddValidation> AddCaseFileAsync(CaseDocumentAddDto caseDocumentAddDto); 
       }
 }

@@ -1,8 +1,12 @@
 ﻿using Application.Commons;
 using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
+using Application.Queries.LawyerQueries;
 using Application.UseCases.LawyerService;
 using CaseManagementSystemAPI.ResponseHandlers;
+using CaseManagementSystemAPI.ResponseHelpers.CaseControllerResponses;
+using CaseManagementSystemAPI.ResponseHelpers.LawyerControllerResponseHelper;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -12,38 +16,24 @@ namespace CaseManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LawyersController(ILawyerService _lawyerService) : ControllerBase
+    public class LawyersController(ILawyerService _lawyerService , IMediator _mediator) : ControllerBase
     {
         [HttpGet("Get-Lawyers-Primary-Data-{id}")]
         [Authorize(Roles = "Registration Officer")]
         public async Task<IActionResult> GetLawyerPrimaryDataById (string id)
         {
-            var result = await _lawyerService.GetLawyerPrimaryDataById(id);
-
-            if (result is not null)
-            {
-                return Ok(new APIResponseHandler<LawyerReadDto>(200, "Success",
-                                  data: result));
-            }
-
-            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
-                          data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+            var query = new GetLawyerPrimaryDataByIdQuery(id);
+            var result = await _mediator.Send(query);
+            return GetLawyerPrimaryDataByIdResponseHelper.Map(result);
         }
 
         [HttpGet("Get-Lawyers-For-Drop-Down-Menu")]
         [Authorize(Roles = "Registration Officer")]
         public async Task<IActionResult> GetLawyersForDropDownMenuAsync()
         {
-            var result = await _lawyerService.GetLawyersForDropDownMenuAsync();
-
-            if (result is not null)
-            {
-                return Ok(new APIResponseHandler<IEnumerable<CaseDropDownMenuGetDto>>(200, "Success",
-                                  data: result));
-            }
-
-            return BadRequest(new APIResponseHandler<string>(400, "Not Found",
-                          data: "There is No Data to Show | لا يوجد بيانات لعرضها"));
+            var query = new GetLawyersForDropMenuQuery();
+            var result = await _mediator.Send(query);
+            return GetDropMenuDataResponseHelper.Map(result);
         }
     }
 }

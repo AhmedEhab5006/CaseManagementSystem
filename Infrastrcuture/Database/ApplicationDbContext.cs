@@ -1,4 +1,5 @@
 ﻿using Domain.Entites;
+using Domain.Entites.Files;
 using Domain.Enums;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Users;
@@ -654,38 +655,6 @@ namespace Infrastrcuture.Database
                 }
             );
 
-            // Case Documents
-            builder.Entity<CaseDocument>().HasData(
-                new CaseDocument
-                {
-                    id = Guid.Parse("1f6c9b63-9e45-421f-915c-f45c7b65c7c7"),
-                    docType = "مذكرة دفاع",
-                    docCategoryCode = "DEFENSE",
-                    uniqueNo = 2,
-                    VsId = "VS002",
-                    description = "مذكرة الدفاع الأولى",
-                    CaseId = Guid.Parse("80808080-8080-8080-8080-808080808080"),
-                    createdBy = "System",
-                    createdAt = new DateTime(2024, 01, 19),
-                    isDeleted = false,
-                    versionNo = 1
-                },
-                new CaseDocument
-                {
-                    id = Guid.Parse("2d2f1a45-bd6e-4c2c-aea1-7c37c68b68b6"),
-                    docType = "طلب طلاق",
-                    docCategoryCode = "DIVORCE",
-                    uniqueNo = 1,
-                    VsId = "VS003",
-                    description = "طلب طلاق ونفقة",
-                    CaseId = Guid.Parse("90909090-9090-9090-9090-909090909090"),
-                    createdBy = "System",
-                    createdAt = new DateTime(2024, 02, 23),
-                    isDeleted = false,
-                    versionNo = 1
-                }
-            );
-
             // Hearings
             builder.Entity<Hearing>().HasData(
                 new Hearing
@@ -783,6 +752,76 @@ namespace Infrastrcuture.Database
             );
 
             #endregion
+
+            #region DocumentTypes DataSeeding
+
+            builder.Entity<DocType>().HasData(
+                new DocType
+                {
+                    id = Guid.Parse("a3d2f9e0-8c57-4a93-bb3b-f5f3f0cbe1ad"),
+                    Type = "عريضة دعوى",
+                    CategoryCode = "LGL01",
+                    createdAt = new DateTime(2025 , 10 , 21),
+                    createdBy = "System",
+                },
+                new DocType
+                {
+                    id = Guid.Parse("b1e2c7a9-3e5f-47a9-9183-9d6e5dbfa502"),
+                    Type = "مذكرة دفاع",
+                    CategoryCode = "LGL02",
+                    createdAt = new DateTime(2025, 10, 21),
+                    createdBy = "System",
+                },
+                new DocType
+                {
+                    id = Guid.Parse("f4c3a9e1-22bb-4c4e-bb5c-12a9e38de2cb"),
+                    Type = "مستند إثبات",
+                    CategoryCode = "EVD01",
+                    createdAt = new DateTime(2025, 10, 21),
+                    createdBy = "System",
+                },
+                new DocType
+                {
+                    id = Guid.Parse("e3b1f8d5-9a54-4fd9-a9d5-8e6b9c44de77"),
+                    Type = "عقد",
+                    CategoryCode = "CNT01",
+                    createdAt = new DateTime(2025, 10, 21),
+                    createdBy = "System"
+                },
+                new DocType
+                {
+                    id = Guid.Parse("c1f8b2b0-91d4-4e8a-b6c9-8123f58a8b6f"),
+                    Type = "أمر قضائي",
+                    CategoryCode = "ORD01",
+                    createdAt = new DateTime(2025, 10, 21),
+                    createdBy = "System"
+                }
+            );
+
+            #endregion
+
+            #region Configuring RelationShips Between Case and it's Docs
+
+            builder.Entity<CaseDocument>()
+                .HasOne(cd => cd.Case)
+               .WithMany(c => c.caseDocuments)
+               .HasForeignKey(cd => cd.CaseId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<CaseDocument>()
+                    .HasOne(cd => cd.FileAsset)
+                   .WithMany() 
+                   .HasForeignKey(cd => cd.FileAssetId)
+                   .OnDelete(DeleteBehavior.Restrict); 
+
+            builder.Entity<CaseDocument>()
+                    .HasOne(cd => cd.DocType)
+                   .WithMany()
+                   .HasForeignKey(cd => cd.DocTypeId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+
+            #endregion
         }
 
         public DbSet<Case> Cases { get; set; }
@@ -802,5 +841,7 @@ namespace Infrastrcuture.Database
         public DbSet<Litigant> Litigants { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Lawyer> Lawyers { get; set; }
+        public DbSet<FileEntity> Files { get; set; }
+        public DbSet<DocType> DocumentsTypes { get; set; }
     }
 }

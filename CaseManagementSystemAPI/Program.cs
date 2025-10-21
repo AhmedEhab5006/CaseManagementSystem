@@ -1,4 +1,7 @@
-﻿using Application.Interfaces;
+﻿using Application;
+using Application.Configurations;
+using Application.Interfaces;
+using Application.Interfaces.FileServices;
 using Application.Repositories;
 using Application.Repositories.Auth;
 using Application.Repositories.Users;
@@ -15,10 +18,13 @@ using Infrastrcuture.Repositories.Auth;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
+using Infrastrcuture.Services.FileServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
@@ -77,6 +83,9 @@ internal class Program
         builder.Services.AddScoped<ICaseService, CaseService>();
         builder.Services.AddScoped<ILawyerRepository, LawyerRepository>();
         builder.Services.AddScoped<ILawyerService, LawyerService>();
+        builder.Services.AddScoped<IFileEncryptionService, FileEncryptionService>();
+        builder.Services.AddScoped<IFileService, FileService>();
+        
         var csvFilePath = Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
             "Service",
@@ -97,6 +106,9 @@ internal class Program
         builder.Services.AddSingleton<IGetCountriesService>(sp =>
             new GetCountriesService(countriesCsvFilePath));
 
+        builder.Services.Configure<FileStorageSettings>(builder.Configuration.GetSection("FileStorage"));
+        builder.Services.AddTransient<IFTPCilentService, FTPCilentService>();
+
 
         builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -116,6 +128,9 @@ internal class Program
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
+
+        builder.Services.AddMediatR(cfg =>
+           cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
 
         var publicKeyPath = Path.Combine(Directory.GetCurrentDirectory(), "Security", "public_key.pem");
 
@@ -171,7 +186,7 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMiddleware<GlobalExceptionHandler>();
+       // app.UseMiddleware<GlobalExceptionHandler>();
 
         app.Use(async (context, next) =>
         {

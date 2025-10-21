@@ -1,10 +1,12 @@
 ﻿using Application.Repositories;
 using Application.Repositories.CaseRepositories;
 using Application.Repositories.CourtRepositories;
+using Application.Repositories.FileRepoisitories;
 using AutoMapper;
 using Infrastrcuture.Database;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.CourtRepositories;
+using Infrastrcuture.Repositories.File;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +27,9 @@ namespace Infrastrcuture.Repositories
         private readonly Lazy<ICaseTopicRepository> _caseTopicRepository;
         private readonly Lazy<ICaseTypeRepository> _caseTypeRepository;
         private readonly Lazy<ILitigantRepository> _litigantRepository;
+        private readonly Lazy<IFileRepository> _fileRepository;
+        private readonly Lazy<ICaseDocumentRepository> _caseDocumentRepository;
+        private readonly Lazy<ICaseDocTypeRepository> _caseDocTypeRepository;
 
 
         #endregion
@@ -52,6 +57,9 @@ namespace Infrastrcuture.Repositories
             _caseTopicRepository = new Lazy<ICaseTopicRepository>(() => new CaseTopicRepository(dbContext));
             _caseTypeRepository = new Lazy<ICaseTypeRepository>(() => new CaseTypeRepository(dbContext));
             _litigantRepository = new Lazy<ILitigantRepository>(() => new LitigantRepository(dbContext));
+            _fileRepository = new Lazy<IFileRepository>(() => new FileRepository(dbContext));
+            _caseDocumentRepository = new Lazy<ICaseDocumentRepository>(() => new CaseDocumentRepository(dbContext));
+            _caseDocTypeRepository = new Lazy<ICaseDocTypeRepository>(() => new CaseDocTypeRepository(dbContext));
 
             #endregion
 
@@ -77,6 +85,9 @@ namespace Infrastrcuture.Repositories
         public ICaseTopicRepository CaseTopicRepository => _caseTopicRepository.Value;
         public ICaseTypeRepository CaseTypeRepository => _caseTypeRepository.Value;
         public ILitigantRepository LitigantRepository => _litigantRepository.Value;
+        public IFileRepository FileRepository => _fileRepository.Value;
+        public ICaseDocumentRepository CaseDocumentRepository => _caseDocumentRepository.Value;
+        public ICaseDocTypeRepository CaseDocTypeRepository => _caseDocTypeRepository.Value;
 
 
         #endregion
