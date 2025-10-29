@@ -1,6 +1,7 @@
 ﻿using Application.Repositories.CaseRepositories;
 using Application.Repositories.CourtRepositories;
 using Application.Repositories.FileRepoisitories;
+using Application.Repositories.ManagementRepos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,15 @@ namespace Application.Repositories
 
         public ICourtRepository CourtRepository { get; }
         public ICourtGradeRepository CourtGradeRepository { get; }
+
+
+        #endregion
+
+        #region Managment Repos
+
+        public IUserPermissionRepository UserPermissionRepository { get; }
+        public IPermissionRepository PermissionRepository { get; }
+        public IRolePermissionRepository RolePermissionRepository { get; }
 
 
         #endregion

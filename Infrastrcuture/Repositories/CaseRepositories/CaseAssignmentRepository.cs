@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.CaseRepositories
 {
-    public class CaseAssignmentRepository(ApplicationDbContext _context , IMapper _mapper) : GenericRepository<CaseAssignment>(_context), ICaseAssignmentRepository
+    public class CaseAssignmentRepository(ApplicationDbContext _context , DbSet<CaseAssignment> _dbSet , IMapper _mapper) : GenericRepository<CaseAssignment>(_context , _dbSet), ICaseAssignmentRepository
     {
         public async Task<PagedResult<LawyerReadDto>> GetCaseLawyersAsync(Guid caseId, int pageNumber, int pageSize, bool asNoTracking = false)
         {

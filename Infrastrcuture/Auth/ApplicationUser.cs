@@ -1,4 +1,5 @@
 ﻿using Domain.Entites;
+using Domain.Entites.Permissions;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Infrastrcuture.Auth
         public string? deletedBy { get; set; }
         public string? deletionReason { get; set; }
         public bool isDeleted { get; set; }
+        public string ApplicationUserImagePath { get; set; } = string.Empty;
+        public ICollection<UserPermission>? UserPermissions { get; set; }
 
     }
 }

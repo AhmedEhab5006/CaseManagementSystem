@@ -16,7 +16,7 @@ namespace CaseManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LawyersController(ILawyerService _lawyerService , IMediator _mediator) : ControllerBase
+    public class LawyersController(IMediator _mediator) : ControllerBase
     {
         [HttpGet("Get-Lawyers-Primary-Data-{id}")]
         [Authorize(Roles = "Registration Officer")]

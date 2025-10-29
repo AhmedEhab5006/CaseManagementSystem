@@ -1,5 +1,6 @@
 ﻿using Domain.Entites;
 using Domain.Entites.Files;
+using Domain.Entites.Permissions;
 using Domain.Enums;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Users;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
@@ -822,6 +824,9 @@ namespace Infrastrcuture.Database
 
 
             #endregion
+            
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
         }
 
         public DbSet<Case> Cases { get; set; }
@@ -843,5 +848,8 @@ namespace Infrastrcuture.Database
         public DbSet<Lawyer> Lawyers { get; set; }
         public DbSet<FileEntity> Files { get; set; }
         public DbSet<DocType> DocumentsTypes { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
     }
 }

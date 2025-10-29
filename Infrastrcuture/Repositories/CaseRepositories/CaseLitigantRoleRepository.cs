@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.CaseRepositories
 {
-    public class CaseLitigantRoleRepository(ApplicationDbContext _context) : GenericRepository<CaseLitigantRole>(_context), ICaseLitigantRoleRepository
+    public class CaseLitigantRoleRepository(ApplicationDbContext _context , DbSet<CaseLitigantRole> _dbSet) : GenericRepository<CaseLitigantRole>(_context, _dbSet), ICaseLitigantRoleRepository
     {
         public IQueryable<CaseLitigantRole> GetAll()
         {

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.CourtRepositories
 {
-    public class CourtRepository(ApplicationDbContext _context) : GenericRepository<Court>(_context), ICourtRepository
+    public class CourtRepository(ApplicationDbContext _context , DbSet<Court> _dbSet) : GenericRepository<Court>(_context , _dbSet), ICourtRepository
     {
         public IQueryable<Court> GetAll()
         {

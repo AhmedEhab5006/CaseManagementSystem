@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.CaseRepositories
 {
-    public class CaseLitigantRepository(ApplicationDbContext _context) : GenericRepository<CaseLitigant>(_context), ICaseLitigantRepository
+    public class CaseLitigantRepository(ApplicationDbContext _context , DbSet<CaseLitigant> _dbSet) : GenericRepository<CaseLitigant>(_context , _dbSet), ICaseLitigantRepository
     {
         public async Task<PagedResult<CaseLitigant>> GetCaseLitigantsAsync(Guid caseId, int pageNumber , int pageSize )
         {

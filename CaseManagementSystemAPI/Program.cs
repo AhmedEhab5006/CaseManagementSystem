@@ -1,8 +1,11 @@
 ﻿using Application;
 using Application.Configurations;
 using Application.Interfaces;
+using Application.Interfaces.AccountService;
 using Application.Interfaces.FileServices;
+using Application.Interfaces.ManagementService;
 using Application.Repositories;
+using Application.Repositories.AccountRepos;
 using Application.Repositories.Auth;
 using Application.Repositories.Users;
 using Application.UseCases;
@@ -14,11 +17,13 @@ using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
 using Infrastrcuture.Mappers;
 using Infrastrcuture.Repositories;
+using Infrastrcuture.Repositories.AccountRepos;
 using Infrastrcuture.Repositories.Auth;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
 using Infrastrcuture.Services.FileServices;
+using Infrastrcuture.Services.ManagementService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -85,6 +90,9 @@ internal class Program
         builder.Services.AddScoped<ILawyerService, LawyerService>();
         builder.Services.AddScoped<IFileEncryptionService, FileEncryptionService>();
         builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.AddScoped<IManagementService, ManagementService>();
         
         var csvFilePath = Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
@@ -186,7 +194,7 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-       // app.UseMiddleware<GlobalExceptionHandler>();
+      // app.UseMiddleware<GlobalExceptionHandler>();
 
         app.Use(async (context, next) =>
         {

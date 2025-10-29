@@ -2,11 +2,16 @@
 using Application.Repositories.CaseRepositories;
 using Application.Repositories.CourtRepositories;
 using Application.Repositories.FileRepoisitories;
+using Application.Repositories.ManagementRepos;
 using AutoMapper;
+using Domain.Entites;
+using Domain.Entites.Files;
+using Domain.Entites.Permissions;
 using Infrastrcuture.Database;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.CourtRepositories;
 using Infrastrcuture.Repositories.File;
+using Infrastrcuture.Repositories.ManagementRepos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +47,15 @@ namespace Infrastrcuture.Repositories
 
         #endregion
 
+        #region Managment Repos
+
+        private readonly Lazy<IRolePermissionRepository> _rolePermissionRepository;
+        private readonly Lazy<IPermissionRepository> _permissionRepository;
+        private readonly Lazy<IUserPermissionRepository> _userPermissionRepository;
+
+
+        #endregion
+
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
 
@@ -49,25 +63,33 @@ namespace Infrastrcuture.Repositories
         {
             #region Case Repositories Initialization
             
-            _caseRepository = new Lazy<ICaseRepository>(() => new CaseRepository(dbContext));
-            _caseAssignmentRepository = new Lazy<ICaseAssignmentRepository>(() => new CaseAssignmentRepository(dbContext , _mapper));
-            _caseEventRepository = new Lazy<ICaseEventRepository>(() => new CaseEventRepository(dbContext));
-            _caseLitigantRepository = new Lazy<ICaseLitigantRepository>(() => new CaseLitigantRepository(dbContext));
-            _caseLitigantRoleRepository = new Lazy<ICaseLitigantRoleRepository>(() => new CaseLitigantRoleRepository(dbContext));
-            _caseTopicRepository = new Lazy<ICaseTopicRepository>(() => new CaseTopicRepository(dbContext));
-            _caseTypeRepository = new Lazy<ICaseTypeRepository>(() => new CaseTypeRepository(dbContext));
-            _litigantRepository = new Lazy<ILitigantRepository>(() => new LitigantRepository(dbContext));
-            _fileRepository = new Lazy<IFileRepository>(() => new FileRepository(dbContext));
-            _caseDocumentRepository = new Lazy<ICaseDocumentRepository>(() => new CaseDocumentRepository(dbContext));
-            _caseDocTypeRepository = new Lazy<ICaseDocTypeRepository>(() => new CaseDocTypeRepository(dbContext));
-
+            _caseRepository = new Lazy<ICaseRepository>(() => new CaseRepository(dbContext , dbContext.Set<Case>()));
+            _caseAssignmentRepository = new Lazy<ICaseAssignmentRepository>(() => new CaseAssignmentRepository(dbContext , dbContext.Set<CaseAssignment>(), _mapper ));
+            _caseEventRepository = new Lazy<ICaseEventRepository>(() => new CaseEventRepository(dbContext , dbContext.Set<CaseEvent>()));
+            _caseLitigantRepository = new Lazy<ICaseLitigantRepository>(() => new CaseLitigantRepository(dbContext , dbContext.Set<CaseLitigant>()));
+            _caseLitigantRoleRepository = new Lazy<ICaseLitigantRoleRepository>(() => new CaseLitigantRoleRepository(dbContext , dbContext.Set<CaseLitigantRole>()));
+            _caseTopicRepository = new Lazy<ICaseTopicRepository>(() => new CaseTopicRepository(dbContext , dbContext.Set<CaseTopic>()));
+            _caseTypeRepository = new Lazy<ICaseTypeRepository>(() => new CaseTypeRepository(dbContext , dbContext.Set<CaseType>()));
+            _litigantRepository = new Lazy<ILitigantRepository>(() => new LitigantRepository(dbContext , dbContext.Set<Litigant>()));
+            _fileRepository = new Lazy<IFileRepository>(() => new FileRepository(dbContext , dbContext.Set<FileEntity>()));
+            _caseDocumentRepository = new Lazy<ICaseDocumentRepository>(() => new CaseDocumentRepository(dbContext , dbContext.Set<CaseDocument>()));
+            _caseDocTypeRepository = new Lazy<ICaseDocTypeRepository>(() => new CaseDocTypeRepository(dbContext , dbContext.Set<DocType>()));
+           
             #endregion
 
             #region Court Repositories Initialisation
 
-            _courtRepository = new Lazy<ICourtRepository>(() => new CourtRepository(dbContext));
-            _courtGradeRepository = new Lazy<ICourtGradeRepository>(() => new CourtGradeRepository(dbContext));
+            _courtRepository = new Lazy<ICourtRepository>(() => new CourtRepository(dbContext , dbContext.Set<Court>()));
+            _courtGradeRepository = new Lazy<ICourtGradeRepository>(() => new CourtGradeRepository(dbContext , dbContext.Set<CourtGrade>()));
 
+
+            #endregion
+
+            #region Managment Repos Init
+
+            _rolePermissionRepository = new Lazy<IRolePermissionRepository>(() => new RolePermissionRepostiory(dbContext , dbContext.Set<RolePermission>()));
+            _userPermissionRepository = new Lazy<IUserPermissionRepository>(() => new UserPermissionRepository(dbContext , dbContext.Set<UserPermission>()));
+            _permissionRepository = new Lazy<IPermissionRepository>(() => new PermissionRepostiory(dbContext , dbContext.Set<Permission>()));
 
             #endregion
 
@@ -96,6 +118,14 @@ namespace Infrastrcuture.Repositories
 
         public ICourtRepository CourtRepository => _courtRepository.Value;
         public ICourtGradeRepository CourtGradeRepository => _courtGradeRepository.Value;
+
+        #endregion
+
+        #region Managment Repos Instances
+
+        public IRolePermissionRepository RolePermissionRepository => _rolePermissionRepository.Value;
+        public IUserPermissionRepository UserPermissionRepository => _userPermissionRepository.Value;
+        public IPermissionRepository PermissionRepository => _permissionRepository.Value;
 
 
         #endregion

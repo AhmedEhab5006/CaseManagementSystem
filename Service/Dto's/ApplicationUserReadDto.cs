@@ -30,7 +30,7 @@ namespace Application.Dto_s
             public bool? LockoutEnabled { get; set; }
             public int? AccessFailedCount { get; set; }
             public DateTime? ModifiedAt { get; set; }
-            public DateTime? ModifiedBy { get; set; }
+            public string ModifiedBy { get; set; }
             public DateTime? DeletedAt { get; set; }
             public string DeletionReason { get; set; }
         }

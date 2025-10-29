@@ -1608,6 +1608,155 @@ namespace Infrastrcuture.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entites.Permissions.Permission", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("Permissions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entites.Permissions.RolePermission", b =>
+                {
+                    b.Property<string>("RoleId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entites.Permissions.UserPermission", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("UserPermissions", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entites.TaskItem", b =>
                 {
                     b.Property<Guid>("id")
@@ -1705,6 +1854,10 @@ namespace Infrastrcuture.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("ApplicationUserImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -1799,6 +1952,7 @@ namespace Infrastrcuture.Migrations
                         {
                             Id = "7a6a2d33-5d69-4d1e-9ef3-000000000001",
                             AccessFailedCount = 0,
+                            ApplicationUserImagePath = "",
                             ConcurrencyStamp = "b6f994c7-3b9c-45d9-8f3e-222222222222",
                             CreatedAt = new DateTime(2025, 9, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreateedBy = "Seed",
@@ -1820,6 +1974,7 @@ namespace Infrastrcuture.Migrations
                         {
                             Id = "7a6a2d33-5d69-4d1e-9ef3-000000000003",
                             AccessFailedCount = 0,
+                            ApplicationUserImagePath = "",
                             ConcurrencyStamp = "b6f994c7-3b9c-45d9-8f3e-444444444444",
                             CreatedAt = new DateTime(2025, 9, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreateedBy = "Seed",
@@ -2018,6 +2173,7 @@ namespace Infrastrcuture.Migrations
                         {
                             Id = "7a6a2d33-5d69-4d1e-9ef3-000000000002",
                             AccessFailedCount = 0,
+                            ApplicationUserImagePath = "",
                             ConcurrencyStamp = "b6f994c7-3b9c-45d9-8f3e-666666666666",
                             CreatedAt = new DateTime(2025, 9, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CreateedBy = "Seed",
@@ -2239,6 +2395,40 @@ namespace Infrastrcuture.Migrations
                     b.Navigation("Case");
                 });
 
+            modelBuilder.Entity("Domain.Entites.Permissions.RolePermission", b =>
+                {
+                    b.HasOne("Domain.Entites.Permissions.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastrcuture.Auth.ApplicationUserRole", null)
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+                });
+
+            modelBuilder.Entity("Domain.Entites.Permissions.UserPermission", b =>
+                {
+                    b.HasOne("Domain.Entites.Permissions.Permission", "Permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastrcuture.Auth.ApplicationUser", null)
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+                });
+
             modelBuilder.Entity("Domain.Entites.TaskItem", b =>
                 {
                     b.HasOne("Domain.Entites.Case", "Case")
@@ -2365,6 +2555,23 @@ namespace Infrastrcuture.Migrations
             modelBuilder.Entity("Domain.Entites.Litigant", b =>
                 {
                     b.Navigation("CaseLitigants");
+                });
+
+            modelBuilder.Entity("Domain.Entites.Permissions.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserPermissions");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUser", b =>
+                {
+                    b.Navigation("UserPermissions");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUserRole", b =>
+                {
+                    b.Navigation("RolePermissions");
                 });
 #pragma warning restore 612, 618
         }

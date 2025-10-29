@@ -2,6 +2,7 @@
 using Application.Enums;
 using Application.Repositories.Auth;
 using AutoMapper;
+using Domain.Entites.Permissions;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
 using Microsoft.AspNetCore.Identity;
@@ -152,6 +153,49 @@ namespace Infrastrcuture.Repositories.Auth
             }
 
             return false;
+        }
+
+        public async Task<ApplicationUserReadDto?> GetByIdAsync(string Id)
+        {
+            var found = await _userManager.Users
+                                  .AsNoTracking()
+                                  .FirstOrDefaultAsync(u => u.Id == Id);
+
+            if (found is not null)
+            {
+                var user = _mapper.Map<ApplicationUserReadDto>(found);
+                return user;
+            }
+
+            return null;
+        }
+
+        public async Task<RoleReadDto?> GetRoleByIdAsync(string Id)
+        {
+            var found = await _context.Roles
+                                             .AsNoTracking()
+                                             .FirstOrDefaultAsync(u => u.Id == Id);
+
+            if (found is not null)
+            {
+                var role = new RoleReadDto
+                {
+                    RoleId = found.Id,
+                    RoleName = found.Name == "Admin"
+                                            ? "مدير"
+                                        : found.Name == "Lawyer"
+                                        ? "محامي"
+                                      : found.Name == "Registration Officer"
+                                          ? "موظف تسجيل"
+                                : "غير معروف",
+
+                };
+
+
+                return role;
+            }
+
+            return null;
         }
     }
 }

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.CaseRepositories
 {
-    public class CaseTopicRepository(ApplicationDbContext _context) : GenericRepository<CaseTopic>(_context), ICaseTopicRepository
+    public class CaseTopicRepository(ApplicationDbContext _context , DbSet<CaseTopic> _dbSet) : GenericRepository<CaseTopic>(_context, _dbSet), ICaseTopicRepository
     {
         public IQueryable<CaseTopic> GetAll()
         {

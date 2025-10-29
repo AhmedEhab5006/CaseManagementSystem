@@ -19,6 +19,8 @@ namespace Application.Repositories.Auth
        public Task <IList<Claim>> GetClaimsAsync (ApplicationUserReadDto user);
        public Task<string> GenerateResetPassowrdTokenAsync(ApplicationUserReadDto user);
        public Task<ApplicationUserReadDto?> GetByEmailAsync(string email);
+       public Task<ApplicationUserReadDto?> GetByIdAsync(string Id);
+       public Task<RoleReadDto?> GetRoleByIdAsync(string Id);
        public Task<bool> ResetPasswordAsync(ApplicationUserReadDto user , string token , string newPassword);
     
 
