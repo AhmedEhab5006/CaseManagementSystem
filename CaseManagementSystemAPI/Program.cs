@@ -194,7 +194,7 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-      // app.UseMiddleware<GlobalExceptionHandler>();
+        app.UseMiddleware<GlobalExceptionHandler>();
 
         app.Use(async (context, next) =>
         {

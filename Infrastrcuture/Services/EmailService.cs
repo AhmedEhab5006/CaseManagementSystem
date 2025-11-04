@@ -30,6 +30,7 @@ namespace Infrastrcuture.Services
 
             using (var client = new SmtpClient(smtpSettings["Host"], int.Parse(smtpSettings["Port"])))
             {
+                client.UseDefaultCredentials = false;
                 client.Credentials = new NetworkCredential(smtpSettings["UserName"], smtpSettings["Password"]);
                 client.EnableSsl = bool.Parse(smtpSettings["EnableSsl"]);
 
