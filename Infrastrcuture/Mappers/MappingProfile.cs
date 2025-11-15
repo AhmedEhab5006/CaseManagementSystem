@@ -1,5 +1,7 @@
 ﻿using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
+using Application.Dto_s.CourtDto_s;
+using Application.Dto_s.User;
 using AutoMapper;
 using Domain.Entites;
 using Infrastrcuture.Auth;
@@ -23,6 +25,10 @@ namespace Infrastrcuture.Mappers
             
             //Mapping Found Application User Entity to the DTO
             CreateMap<ApplicationUser, ApplicationUserReadDto>();
+            CreateMap<ApplicationUser, UserReadDto>()
+                .ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.displayName))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.isActive));
+                //.ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.isDeleted));
 
 
             #endregion
@@ -154,6 +160,7 @@ namespace Infrastrcuture.Mappers
             // Map from Entity to DTO
             CreateMap<Litigant, LitigantDto>()
                 .ForMember(dest => dest.createdBy, opt => opt.MapFrom(src => src.createdBy))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.id))
                 .ForMember(dest => dest.firstNameAR, opt => opt.MapFrom(src => src.firstNameAR))
                 .ForMember(dest => dest.lastNameAR, opt => opt.MapFrom(src => src.lastNameAR))
                 .ForMember(dest => dest.firstNameEN, opt => opt.MapFrom(src => src.firstNameEN))
@@ -242,7 +249,7 @@ namespace Infrastrcuture.Mappers
 
             #region Lawyer Entity Mapping
 
-            CreateMap<Lawyer, LawyerReadDto>()
+            CreateMap<ApplicationUser, LawyerReadDto>()
               .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName)) // assuming BaseEntity has CreatedAt
               .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.displayName))
               .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))

@@ -21,7 +21,7 @@ namespace Infrastrcuture.Repositories.CaseRepositories
         {
             var query = _context.CasesAssignments
                                 .Where(ca => ca.CaseId == caseId)
-                    .Join(_context.Lawyers,
+                    .Join(_context.Users,
           ca => ca.assignedUserId,
           l => l.Id,
           (ca, l) => new

@@ -1,4 +1,5 @@
-﻿using Application.Repositories;
+﻿using Application.Interfaces.Audtiting;
+using Application.Repositories;
 using Application.Repositories.CaseRepositories;
 using Application.Repositories.CourtRepositories;
 using Application.Repositories.FileRepoisitories;
@@ -7,11 +8,13 @@ using AutoMapper;
 using Domain.Entites;
 using Domain.Entites.Files;
 using Domain.Entites.Permissions;
+using Infrastrcuture.AuditingAndIntegration;
 using Infrastrcuture.Database;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.CourtRepositories;
 using Infrastrcuture.Repositories.File;
 using Infrastrcuture.Repositories.ManagementRepos;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +29,7 @@ namespace Infrastrcuture.Repositories
 
         private readonly Lazy<ICaseRepository> _caseRepository;
         private readonly Lazy<ICaseAssignmentRepository> _caseAssignmentRepository;
+        private readonly Lazy<ICaseReAssignmentRequestRepository> _caseReAssignmentRequestRepository;
         private readonly Lazy<ICaseEventRepository> _caseEventRepository;
         private readonly Lazy<ICaseLitigantRepository> _caseLitigantRepository;
         private readonly Lazy<ICaseLitigantRoleRepository> _caseLitigantRoleRepository;
@@ -35,6 +39,8 @@ namespace Infrastrcuture.Repositories
         private readonly Lazy<IFileRepository> _fileRepository;
         private readonly Lazy<ICaseDocumentRepository> _caseDocumentRepository;
         private readonly Lazy<ICaseDocTypeRepository> _caseDocTypeRepository;
+        private readonly Lazy<ILitigantCrimeRepository> _litigantCrimeRepository;
+
 
 
         #endregion
@@ -56,15 +62,18 @@ namespace Infrastrcuture.Repositories
 
         #endregion
 
+
         private readonly ApplicationDbContext _dbContext;
+        private readonly IAuditTrailService _auditTrailService;
         private readonly IMapper _mapper;
 
-        public UnitOfWork(ApplicationDbContext dbContext)
+        public UnitOfWork(ApplicationDbContext dbContext , IAuditTrailService auditTrailService)
         {
             #region Case Repositories Initialization
             
             _caseRepository = new Lazy<ICaseRepository>(() => new CaseRepository(dbContext , dbContext.Set<Case>()));
             _caseAssignmentRepository = new Lazy<ICaseAssignmentRepository>(() => new CaseAssignmentRepository(dbContext , dbContext.Set<CaseAssignment>(), _mapper ));
+            _caseReAssignmentRequestRepository = new Lazy<ICaseReAssignmentRequestRepository>(() => new CaseReAssignmentRequestRepository(dbContext , dbContext.Set<CaseReAssignmentRequest>()));
             _caseEventRepository = new Lazy<ICaseEventRepository>(() => new CaseEventRepository(dbContext , dbContext.Set<CaseEvent>()));
             _caseLitigantRepository = new Lazy<ICaseLitigantRepository>(() => new CaseLitigantRepository(dbContext , dbContext.Set<CaseLitigant>()));
             _caseLitigantRoleRepository = new Lazy<ICaseLitigantRoleRepository>(() => new CaseLitigantRoleRepository(dbContext , dbContext.Set<CaseLitigantRole>()));
@@ -74,7 +83,11 @@ namespace Infrastrcuture.Repositories
             _fileRepository = new Lazy<IFileRepository>(() => new FileRepository(dbContext , dbContext.Set<FileEntity>()));
             _caseDocumentRepository = new Lazy<ICaseDocumentRepository>(() => new CaseDocumentRepository(dbContext , dbContext.Set<CaseDocument>()));
             _caseDocTypeRepository = new Lazy<ICaseDocTypeRepository>(() => new CaseDocTypeRepository(dbContext , dbContext.Set<DocType>()));
-           
+            _litigantCrimeRepository = new Lazy<ILitigantCrimeRepository>(() =>
+        new LitigantCrimeRepository(dbContext, dbContext.Set<LitigantCrime>())
+        );
+
+
             #endregion
 
             #region Court Repositories Initialisation
@@ -94,6 +107,7 @@ namespace Infrastrcuture.Repositories
             #endregion
 
             this._dbContext = dbContext;
+            this._auditTrailService = auditTrailService;
 
         }
 
@@ -101,6 +115,7 @@ namespace Infrastrcuture.Repositories
 
         public ICaseRepository CaseRepository => _caseRepository.Value;
         public ICaseAssignmentRepository CaseAssignmentRepository => _caseAssignmentRepository.Value;
+        public ICaseReAssignmentRequestRepository CaseReAssignmentRequestRepository => _caseReAssignmentRequestRepository.Value;
         public ICaseEventRepository CaseEventRepository => _caseEventRepository.Value;
         public ICaseLitigantRepository CaseLitigantRepository => _caseLitigantRepository.Value;
         public ICaseLitigantRoleRepository CaseLitigantRoleRepository => _caseLitigantRoleRepository.Value;
@@ -110,6 +125,7 @@ namespace Infrastrcuture.Repositories
         public IFileRepository FileRepository => _fileRepository.Value;
         public ICaseDocumentRepository CaseDocumentRepository => _caseDocumentRepository.Value;
         public ICaseDocTypeRepository CaseDocTypeRepository => _caseDocTypeRepository.Value;
+        public ILitigantCrimeRepository LitigantCrimeRepository => _litigantCrimeRepository.Value;
 
 
         #endregion
@@ -130,9 +146,23 @@ namespace Infrastrcuture.Repositories
 
         #endregion
 
-        public Task<int> SaveChangesAsync()
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return _dbContext.SaveChangesAsync();
+            var entries = _dbContext.ChangeTracker
+                .Entries()
+                .Where(e => e.Entity is BaseEntity &&
+                            (e.State == EntityState.Added ||
+                             e.State == EntityState.Modified ||
+                             e.State == EntityState.Deleted))
+                .ToList();
+
+
+            await _auditTrailService.RecordAuditAsync(entries, cancellationToken);
+
+            var result = await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return result;
         }
     }
 }

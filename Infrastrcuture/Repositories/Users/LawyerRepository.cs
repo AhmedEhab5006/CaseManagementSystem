@@ -2,7 +2,9 @@
 using Application.Dto_s.CaseDtos;
 using Application.Repositories.Users;
 using AutoMapper;
+using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +14,8 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Repositories.Users
 {
-    public class LawyerRepository(ApplicationDbContext _applicationDbContext , IMapper _mapper) : ILawyerRepository
+    public class LawyerRepository(ApplicationDbContext _applicationDbContext , IMapper _mapper , UserManager<ApplicationUser>
+         _userManager) : ILawyerRepository
     {
         public async Task<LawyerFullDataReadDto?> GetLawyerByIdAsync(string id)
         {
@@ -32,11 +35,10 @@ namespace Infrastrcuture.Repositories.Users
 
         public async Task<LawyerReadDto?> GetLawyerPrimaryDataByIdAsync(string id)
         {
-            var lawyerEntity = await _applicationDbContext.Lawyers
+            var lawyerEntity = await _applicationDbContext.Users
                                                                .AsNoTracking()
                                                                .Where(a => a.Id == id)
                                                                .SingleOrDefaultAsync();
-
             if (lawyerEntity is not null)
             {
                 var returned = _mapper.Map<LawyerReadDto>(lawyerEntity);
@@ -48,9 +50,8 @@ namespace Infrastrcuture.Repositories.Users
 
         public async Task<IEnumerable<CaseDropDownMenuGetDto?>> GetLawyersForDropDownMenuAsync()
         {
-            var lawyerEntity = await _applicationDbContext.Lawyers
-                                                                          .AsNoTracking()
-                                                                          .ToListAsync();
+            var lawyerEntity = await _userManager.GetUsersInRoleAsync("Lawyer");
+            
             if (lawyerEntity is not null)
             {
                 var returned = new List<CaseDropDownMenuGetDto?>(); 

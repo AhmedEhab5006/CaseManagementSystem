@@ -1,10 +1,13 @@
 ﻿using Application.Commons;
 using Application.Dto_s;
+using Application.Dto_s.Audting;
 using Application.Dto_s.CaseDtos;
+using Domain.Entites;
 using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,5 +33,9 @@ namespace Application.UseCases
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCourtsForDropDownMenuAsync(); 
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetLitigantsRoleDropDownMenuAsync(); 
         Task<CaseDocumentAddValidation> AddCaseFileAsync(CaseDocumentAddDto caseDocumentAddDto); 
+        Task<IEnumerable<CaseDropDownMenuGetDto>> GetAvailableCrimesAsync(); 
+        Task<AddCrimeValidations> AddCrimeToLitigantAsync(CrimeAddDto crimeAdd); 
+        Task<PagedResult<CrimeReadDto>> GetLitigantCrimesInCase(Guid litigantId , Guid CaseId, int pageNumber, int pageSize); 
+        Task<PagedResult<CaseHistoryReadDto>> GetCaseHistory(Guid caseId , int pageNumber , int pageSize); 
       }
 }

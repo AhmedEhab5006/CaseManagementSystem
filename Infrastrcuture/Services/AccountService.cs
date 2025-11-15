@@ -17,14 +17,6 @@ namespace Infrastrcuture.Services
         {
             
             var user = await _authRepository.GetByIdAsync(accountId);
-            var resetPasswordToken = await _authRepository.GenerateResetPassowrdTokenAsync(user);
-            var passwordResetting =  await _authRepository.ResetPasswordAsync(user , resetPasswordToken , account.Password);
-            
-            if (!passwordResetting)
-            {
-                return EditValidatation.Error;
-            }
-
             var resetUser = await _accountRepository.EditAccountInfo(accountId, account);
             return resetUser;
         

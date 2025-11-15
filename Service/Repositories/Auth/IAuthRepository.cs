@@ -1,4 +1,7 @@
 ﻿using Application.Dto_s;
+using Application.Dto_s.Commons;
+using Application.Dto_s.ManagementDto_s;
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +25,9 @@ namespace Application.Repositories.Auth
        public Task<ApplicationUserReadDto?> GetByIdAsync(string Id);
        public Task<RoleReadDto?> GetRoleByIdAsync(string Id);
        public Task<bool> ResetPasswordAsync(ApplicationUserReadDto user , string token , string newPassword);
+      public Task<AddValidation> AddUserAsync(UserAddDto userAddDto);
+      public Task<DeleteAndUpdateValidatation> DeleteUserAsync(string userId, DeleteDto delete);
+      public Task<IEnumerable<RoleReadDto>> GetAllRolesAsync();
     
 
     }

@@ -21,8 +21,9 @@ namespace Infrastrcuture.Mappers
                   .ForMember(dest => dest.createdAt, opt => opt.MapFrom(src => DateTime.Now))
                   .ForMember(dest => dest.createdBy, opt => opt.MapFrom(src => src.createdBy))
                   .ForMember(dest => dest.versionNo, opt => opt.MapFrom(src => 1))
+                  .ForMember(dest => dest.isDeleted, opt => opt.MapFrom(src => false))
                   .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-                  .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Name != null ? src.Name : "لا يوجد"));
+                  .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description != null ? src.Description : "لا يوجد"));
 
 
             #endregion
@@ -51,6 +52,7 @@ namespace Infrastrcuture.Mappers
 
             CreateMap<Permission, PermissionPrimaryDataReadDto>()
                     .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.id))
                     .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description != null ? src.Description : "لا يوجد وصف"))
                     .ForMember(dest => dest.numberOfAssignedUsers, opt => opt.MapFrom(src => src.UserPermissions.Count()))
                     .ForMember(dest => dest.numberOfAssignedRoles, opt => opt.MapFrom(src => src.RolePermissions.Count()));

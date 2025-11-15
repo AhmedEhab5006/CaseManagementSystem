@@ -2,7 +2,9 @@
 using Domain.Entites.Files;
 using Domain.Entites.Permissions;
 using Domain.Enums;
+using Infrastrcuture.AuditingAndIntegration;
 using Infrastrcuture.Auth;
+using Infrastrcuture.HelperEntites;
 using Infrastrcuture.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -51,6 +53,10 @@ namespace Infrastrcuture.Database
                     .Property(a => a.assignedUserRole)
                     .HasConversion<string>();
 
+            builder.Entity<CaseReAssignmentRequest>()
+                    .Property(a => a.RequestStatus)
+                    .HasConversion<string>();
+
             
             #endregion
 
@@ -80,7 +86,7 @@ namespace Infrastrcuture.Database
             #region Configuring Case and Lawyer one - to - many relationship
 
             builder.Entity<CaseAssignment>()
-                            .HasOne<Lawyer>()
+                            .HasOne<ApplicationUser>()
                             .WithMany()
                             .HasForeignKey(c => c.assignedUserId)
                             .OnDelete(DeleteBehavior.NoAction);
@@ -851,5 +857,17 @@ namespace Infrastrcuture.Database
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<CaseReAssignmentRequest> CaseReAssignmentRequests { get; set; }
+        public DbSet<AuditTrail> AuditTrails { get; set; }
+        public DbSet<ExternalMessage> ExternalMessages { get; set; }
+        public DbSet<FeatureFlag> FeatureFlags { get; set; }
+        public DbSet<MessageSequence> MessageSequences { get; set; }
+        public DbSet<RefernceData> RefernecesData { get; set; }
+        public DbSet<SyncActionAPI> SyncActionAPI { get; set; }
+        public DbSet<SyncHistory> SyncHistories { get; set; }
+        public DbSet<SyncLog> SyncLogs { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
+        public DbSet<LitigantCrime> LitigantsCrimes { get; set; }
+        public DbSet<ContractTemplate> ContractTemplates { get; set; }
     }
 }

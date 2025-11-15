@@ -10,7 +10,7 @@ namespace CaseManagementSystemAPI.ResponseHelpers.CaseControllerResponses
  
             public static IActionResult Map(PagedResult<CaseReadDto> records)
             {
-                if (records is not null && records.TotalRecords > 0)
+                if (records is not null)
                 {
                     return new OkObjectResult(
                         new APIResponseHandler<PagedResult<CaseReadDto>>(

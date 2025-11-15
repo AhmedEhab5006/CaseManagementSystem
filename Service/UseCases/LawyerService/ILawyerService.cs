@@ -1,5 +1,7 @@
-﻿using Application.Dto_s;
+﻿using Application.Commons;
+using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
+using Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +14,7 @@ namespace Application.UseCases.LawyerService
     {
         public Task<LawyerReadDto?> GetLawyerPrimaryDataById(string id);
         public Task<IEnumerable<CaseDropDownMenuGetDto?>> GetLawyersForDropDownMenuAsync();
+        Task<PagedResult<CaseReadDto>> GetMyAssignedCases(string lawyerId, int pageNumber, int pageSize);
+        public Task<CaseReAssignmentValidation> SendCaseReAssignmentRequest(CaseReAssignmentRequestDto dto);
     }
 }

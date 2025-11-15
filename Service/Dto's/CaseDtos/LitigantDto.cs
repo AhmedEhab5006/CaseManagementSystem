@@ -9,6 +9,7 @@ namespace Application.Dto_s.CaseDtos
 {
     public class LitigantDto : BaseAddDto
     {
+        public Guid? Id { get; set; }
         public bool isOrganisation { get; set; }
         [Required(ErrorMessage = "لا يمكن ان يكون الاسم باللغة العربية فارغ")]
         public string firstNameAR { get; set; } = string.Empty;
@@ -27,6 +28,8 @@ namespace Application.Dto_s.CaseDtos
         public string email { get; set; } = string.Empty;
         [Required(ErrorMessage = "لا يمكن ان تكون الدولة فارغة")]
         public string country { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public Guid CaseId { get; set; }
 
     }
 }

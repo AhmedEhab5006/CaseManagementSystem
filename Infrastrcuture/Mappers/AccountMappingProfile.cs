@@ -17,7 +17,6 @@ namespace Infrastrcuture.Mappers
             #region Mapping From Account Entity to AccountReadDto
 
             CreateMap<ApplicationUser, AccountReadDto>()
-                     .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.PasswordHash))
                      .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.displayName != null ?
                                                                         src.displayName : "غير متاح"))
 

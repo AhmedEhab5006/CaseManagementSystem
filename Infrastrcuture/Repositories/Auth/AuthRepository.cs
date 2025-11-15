@@ -1,7 +1,10 @@
 ﻿using Application.Dto_s;
+using Application.Dto_s.Commons;
+using Application.Dto_s.ManagementDto_s;
 using Application.Enums;
 using Application.Repositories.Auth;
 using AutoMapper;
+using Domain.Enums;
 using Domain.Entites.Permissions;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
@@ -196,6 +199,130 @@ namespace Infrastrcuture.Repositories.Auth
             }
 
             return null;
+        }
+
+        public async Task<AddValidation> AddUserAsync(UserAddDto userAddDto)
+        {
+            var emailExists = await CheckEmail(userAddDto.Email);
+            var usernameExists = await CheckUsernameAsync(userAddDto.UserName);
+
+            if (emailExists || usernameExists)
+            {
+                return AddValidation.AlreadyExist;
+            }
+
+            var roleDto = await GetRoleByIdAsync(userAddDto.RoleId);
+
+            if (roleDto == null)
+            {
+                return AddValidation.RoleNotFound;
+            }
+
+            var roleEntity = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Id == userAddDto.RoleId);
+
+            if (roleEntity == null)
+            {
+                return AddValidation.RoleNotFound;
+            }
+
+            var newUser = new ApplicationUser
+            {
+                UserName = userAddDto.UserName,
+                Email = userAddDto.Email,
+                NormalizedUserName = userAddDto.UserName.ToUpper(),
+                NormalizedEmail = userAddDto.Email.ToUpper(),
+                displayName = userAddDto.DisplayName,
+                isActive = true,
+                CreatedAt = DateTime.UtcNow,
+                CreateedBy = userAddDto.createdBy,
+                isDeleted = false,
+                EmailConfirmed = true,
+                LockoutEnabled = true,
+                AccessFailedCount = 0,
+            };
+
+            var createResult = await _userManager.CreateAsync(newUser, userAddDto.Password);
+
+            if (!createResult.Succeeded)
+            {
+                return AddValidation.Error;
+            }
+
+            var addToRoleResult = await _userManager.AddToRoleAsync(newUser, roleEntity.Name);
+
+            if (!addToRoleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(newUser);
+                return AddValidation.Error;
+            }
+
+            return AddValidation.Added;
+        }
+
+        public async Task<DeleteAndUpdateValidatation> DeleteUserAsync(string userId, DeleteDto delete)
+        {
+            var userEntity = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && !u.isDeleted);
+
+            if (userEntity == null)
+            {
+                return DeleteAndUpdateValidatation.DoesnotExist;
+            }
+
+            userEntity.isDeleted = true;
+            userEntity.deletedAt = DateTime.Now;
+            userEntity.deletedBy = delete.DeletedBy;
+            userEntity.deletionReason = delete.DeletionReason;
+
+            var userPermissions = await _context.UserPermissions
+                .Where(up => up.UserId == userId && !up.isDeleted)
+                .ToListAsync();
+
+            if (userPermissions.Count > 0)
+            {
+                foreach (var userPermission in userPermissions)
+                {
+                    userPermission.isDeleted = true;
+                    userPermission.deletedAt = delete.DeletedAt;
+                    userPermission.deletedBy = delete.DeletedBy;
+                    userPermission.deletionReason = delete.DeletionReason;
+                }
+
+                _context.UserPermissions.UpdateRange(userPermissions);
+            }
+
+            _context.Users.Update(userEntity);
+
+            var saveResult = await _context.SaveChangesAsync();
+
+            if (saveResult > 0)
+            {
+                return DeleteAndUpdateValidatation.Done;
+            }
+
+            return DeleteAndUpdateValidatation.Error;
+        }
+
+        public async Task<IEnumerable<RoleReadDto>> GetAllRolesAsync()
+        {
+            var roles = await _context.Roles
+                .AsNoTracking()
+                .ToListAsync();
+
+            var roleDtos = roles.Select(role => new RoleReadDto
+            {
+                RoleId = role.Id,
+                RoleName = role.Name switch
+                {
+                    "Admin" => "مدير",
+                    "Lawyer" => "محامي",
+                    "Registration Officer" => "موظف تسجيل",
+                    _ => "غير متاح"
+                }
+            }).ToList();
+
+            return roleDtos;
         }
     }
 }

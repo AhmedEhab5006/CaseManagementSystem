@@ -1,5 +1,6 @@
 ﻿using Application.Commands.ManagementCommands;
 using Application.Dto_s.Commons;
+using Application.Dto_s.CourtDto_s;
 using Application.Dto_s.ManagementDto_s;
 using Application.Queries.ManagementQueries;
 using Application.UseCases.Auth;
@@ -26,6 +27,33 @@ namespace CaseManagementSystemAPI.Controllers
             var result = await _mediator.Send(command);
             return AddPermissionResponseHelper.Map(result);
 
+        }
+
+        [HttpPost("Add-User")]
+        public async Task<IActionResult> AddUser(UserAddDto userAddDto)
+        {
+            userAddDto.createdBy = _authService.GetLoggedUserName();
+            var command = new AddUserCommand(userAddDto);
+            var result = await _mediator.Send(command);
+            return AddUserResponseHelper.Map(result);
+        }
+
+        [HttpPost("Add-Court")]
+        public async Task<IActionResult> AddCourt(CourtAddDto courtAddDto)
+        {
+            courtAddDto.createdBy = _authService.GetLoggedUserName();
+            var command = new CourtAddCommand(courtAddDto);
+            var result = await _mediator.Send(command);
+            return CourtAddResponseHelper.Map(result);
+        }
+
+        [HttpPut("Delete-User-{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId, DeleteDto deleteDto)
+        {
+            deleteDto.DeletedBy = _authService.GetLoggedUserName();
+            var command = new DeleteUserCommand(userId, deleteDto);
+            var result = await _mediator.Send(command);
+            return DeleteAndUpdateResponseHelper.Map(result);
         }
 
         [HttpPost("Assign-Role-To-Permission")]
@@ -79,11 +107,11 @@ namespace CaseManagementSystemAPI.Controllers
 
         }
 
-        [HttpDelete("Grant-Permission-From-User-{permissionId}-{userId}")]
-        public async Task<IActionResult> GrantPermissionFromUser(Guid permissionId, string userId, DeleteDto deleteDto)
+        [HttpPut("Grant-Permission-From-User/{permissionId}/{userId}")]
+        public async Task<IActionResult> GrantPermissionFromUser(string permissionId, string userId, DeleteDto deleteDto)
         {
             deleteDto.DeletedBy = _authService.GetLoggedUserName();
-            var command = new GrantPermissionFromUserCommand(permissionId, userId , deleteDto);
+            var command = new GrantPermissionFromUserCommand(new Guid(permissionId), userId , deleteDto);
             var result = await _mediator.Send(command);
             return DeleteAndUpdateResponseHelper.Map(result);
 
@@ -93,10 +121,90 @@ namespace CaseManagementSystemAPI.Controllers
         [HttpGet("Get-All-Permissions-{pageNumber}-{pageSize}")]
         public async Task<IActionResult> GetAllPermissions(int pageNumber , int pageSize)
         {
-            var query = new GetAllPermissionsQuery(pageNumber , pageSize);
+            var query = new GetAllPermissionsQuery(pageSize, pageNumber);
             var result = await _mediator.Send(query);
             return GetAllPermissionsResponseHelper.Map(result);
 
+        }
+
+        [HttpGet("Get-Permission-By-Id-{permissionId}")]
+        public async Task<IActionResult> GetPermissionById(Guid permissionId)
+        {
+            var query = new GetPermissionByIdQuery(permissionId);
+            var result = await _mediator.Send(query);
+            return GetPermissionByIdResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-All-Users-{pageNumber}-{pageSize}")]
+        public async Task<IActionResult> GetAllUsers(int pageNumber, int pageSize)
+        {
+            var query = new GetAllUsersQuery(pageSize, pageNumber);
+            var result = await _mediator.Send(query);
+            return GetAllUsersResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-All-Courts-Primary-Data-{pageNumber}-{pageSize}")]
+        public async Task<IActionResult> GetAllCourtsPrimaryData(int pageNumber, int pageSize)
+        {
+            var query = new GetAllCourtsPrimaryDataQuery(pageSize, pageNumber);
+            var result = await _mediator.Send(query);
+            return GetAllCourtsPrimaryDataResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Court-Full-Data-{courtId}")]
+        public async Task<IActionResult> GetCourtFullData([FromRoute] Guid courtId)
+        {
+            var query = new GetCourtFullDataQuery(courtId);
+            var result = await _mediator.Send(query);
+            return GetCourtFullDataResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-User-Permissions-{userId}-{pageNumber}-{pageSize}")]
+        public async Task<IActionResult> GetUserPermissions(string userId, int pageNumber, int pageSize)
+        {
+            var query = new GetUserPermissionsQuery(userId, pageSize, pageNumber);
+            var result = await _mediator.Send(query);
+            return GetUserPermissionsResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-All-Roles")]
+        public async Task<IActionResult> GetAllRoles()
+        {
+            var query = new GetAllRolesQuery();
+            var result = await _mediator.Send(query);
+            return GetAllRolesResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Permissions-For-Drop-Down-Menu")]
+        public async Task<IActionResult> GetPermissionsForDropDownMenu()
+        {
+            var query = new GetPermissionsForDropDownMenuQuery();
+            var result = await _mediator.Send(query);
+            return GetPermissionsForDropDownMenuResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Court-Grades-For-Drop-Down-Menu")]
+        public async Task<IActionResult> GetCourtGradesForDropDownMenu()
+        {
+            var query = new GetCourtGradesForDropDownMenuQuery();
+            var result = await _mediator.Send(query);
+            return GetCourtGradesForDropDownMenuResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Entity-Audit-{id}-{pageNumber}-{pageSize}")]
+        public async Task<IActionResult> GetEntityAudit(Guid id , int pageNumber , int pageSize)
+        {
+            var query = new GetEntityAuditQuery(id , pageNumber , pageSize);
+            var result = await _mediator.Send(query);
+            return GetEntityAuditResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Case-ReAssignment-Requests-{pageNumber}-{pageSize}")]
+        public async Task<IActionResult> GetCaseReAssignmentRequests(int pageNumber, int pageSize)
+        {
+            var query = new GetCaseReAssignmentRequestsQuery(pageSize, pageNumber);
+            var result = await _mediator.Send(query);
+            return GetCaseReAssignmentRequestsResponseHelper.Map(result);
         }
     }
 }

@@ -2,6 +2,7 @@
 using Application.Commons;
 using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
+using Application.Features.Case.Commands.AddCrimeToLitigant;
 using Application.Handlers.CaseHandlers.CommandHandlers;
 using Application.Queries.CaseQueries;
 using Application.UseCases;
@@ -125,6 +126,18 @@ namespace CaseManagementSystemAPI.Controllers
 
         }
 
+        [HttpPost("Add-Crime-To-Litigant")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> AddCaseLitigant(CrimeAddDto crimeAddDto)
+        {
+            var loggedUser = _authService.GetLoggedUserName();
+            crimeAddDto.createdBy = loggedUser;
+            var command = new AddCrimeCommand(crimeAddDto);
+            var result = await _mediator.Send(command);
+            return AddCrimeToLitigantResponseHelper.Map(result);
+
+        }
+
         [HttpPost("Add-Case-Docs")]
         [Authorize(Roles = "Registration Officer")]
         public async Task<IActionResult> AddCaseDocument(CaseDocumentAddDto dto)
@@ -143,7 +156,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-All-Cases-Primary-Data-{pageNumber}-{pageSize}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Roles = "Registration Officer,Admin")]
         public async Task<IActionResult> GetAllCasesPrimaryData([FromRoute] int pageNumber , [FromRoute] int pageSize)
         {
 
@@ -155,7 +168,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-All-Data-{id}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize]
         public async Task <IActionResult> GetCaseFullData([FromRoute] Guid id)
         {
             var query = new GetFullDataQuery(id);
@@ -166,7 +179,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-Litigant-Primary-Data-{id}-{pageNumber}-{pageSize}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize]
         public async Task<IActionResult> GetCaseLitigantsPrimaryData([FromRoute] Guid id , int pageNumber , int pageSize)
         {
             var query = new GetCaseLitigantsPrimaryDataQuery(id, pageNumber, pageSize);
@@ -177,7 +190,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-Litigant-Full-Data-{id}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize]
         public async Task<IActionResult> GetCaseLitigantsFullData([FromRoute] Guid id)
         {
          
@@ -188,7 +201,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Case-Lawyers-Primary-Data-{caseId}-{pageNumber}-{pageSize}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize]
         public async Task<IActionResult> GetCaseLawyersPrimaryData([FromRoute] Guid caseId , [FromRoute] int pageNumber , [FromRoute] int pageSize)
         {
             var query = new GetCaseLawyersPrimaryDataQuery(caseId, pageNumber, pageSize);
@@ -197,7 +210,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Case-Lawyers-Full-Data-{lawyerId}")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize]
         public async Task<IActionResult> GetCaseLawyersFullData([FromRoute] string lawyerId)
         {
             var query = new GetLawyersFullDataQuery(lawyerId);
@@ -243,6 +256,35 @@ namespace CaseManagementSystemAPI.Controllers
             return GetDropMenuDataResponseHelper.Map(result);
         }
 
-        #endregion
+        [HttpGet("Get-Cirmes-For-Drop-Down-List")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCrimesForDropDownMenu()
+        {
+            var query = new GetCrimesForDropMenuQuery();
+            var result = await _mediator.Send(query);
+            return GetDropMenuDataResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Litigant-Crimes-")]
+        [Authorize(Roles = "Registration Officer")]
+        public async Task<IActionResult> GetCrimesByLitigant([FromQuery] Guid caseId,[FromQuery] Guid litigantId,[FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 10)
+        {
+            var query = new GetCrimesByLitigantQuery(caseId, litigantId, pageNumber, pageSize);
+            var result = await _mediator.Send(query);
+
+            return GetCrimesByLitigantResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Case-History")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetCaseHistory([FromQuery] Guid caseId,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var query = new GetCaseHistoryQuery(caseId, pageNumber, pageSize);
+            var result = await _mediator.Send(query);
+            return GetCaseHistoryResponseHelper.Map(result);
+        }
     }
+
+    #endregion
 }
+

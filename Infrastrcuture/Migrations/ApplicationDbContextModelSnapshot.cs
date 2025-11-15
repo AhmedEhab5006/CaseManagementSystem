@@ -558,6 +558,63 @@ namespace Infrastrcuture.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entites.CaseReAssignmentRequest", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssigneeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AssignerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RequestStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("CaseReAssignmentRequests", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entites.CaseTopic", b =>
                 {
                     b.Property<Guid>("id")
@@ -1608,6 +1665,68 @@ namespace Infrastrcuture.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Domain.Entites.LitigantCrime", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CrimeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("LitigantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PenaltyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("CaseId");
+
+                    b.HasIndex("CrimeId");
+
+                    b.HasIndex("LitigantId");
+
+                    b.HasIndex("PenaltyId");
+
+                    b.ToTable("LitigantsCrimes");
+                });
+
             modelBuilder.Entity("Domain.Entites.Permissions.Permission", b =>
                 {
                     b.Property<Guid>("id")
@@ -1846,6 +1965,683 @@ namespace Infrastrcuture.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.AuditTrail", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ActorDisplayName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChangedColumnsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Error")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EventAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NewValuesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValuesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("AuditTrails");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.ExternalMessage", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Entity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("ExternalMessages");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.FeatureFlag", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("FeatureFlags");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.MessageSequence", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("CurrentValue")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("MessageSequences");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.RefernceData", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValueAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValueEn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("RefernecesData");
+
+                    b.HasData(
+                        new
+                        {
+                            id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            IsActive = true,
+                            Key = "CONTRACT",
+                            Order = 1,
+                            Type = "TemplateForCaseContract",
+                            ValueAr = "عقد",
+                            ValueEn = "Contract",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            IsActive = true,
+                            Key = "INVOICE",
+                            Order = 2,
+                            Type = "TemplateForCaseContract",
+                            ValueAr = "فاتورة",
+                            ValueEn = "Invoice",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            IsActive = true,
+                            Key = "REPORT",
+                            Order = 3,
+                            Type = "TemplateForCaseContract",
+                            ValueAr = "تقرير",
+                            ValueEn = "Report",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("10000000-0000-0000-0000-000000000001"),
+                            IsActive = true,
+                            Key = "THEFT",
+                            Order = 1,
+                            Type = "Crime",
+                            ValueAr = "سرقة",
+                            ValueEn = "Theft",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("10000000-0000-0000-0000-000000000002"),
+                            IsActive = true,
+                            Key = "ASSAULT",
+                            Order = 2,
+                            Type = "Crime",
+                            ValueAr = "اعتداء",
+                            ValueEn = "Assault",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("10000000-0000-0000-0000-000000000003"),
+                            IsActive = true,
+                            Key = "FRAUD",
+                            Order = 3,
+                            Type = "Crime",
+                            ValueAr = "احتيال",
+                            ValueEn = "Fraud",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("20000000-0000-0000-0000-000000000001"),
+                            IsActive = true,
+                            Key = "FINE",
+                            Order = 1,
+                            Type = "CrimePenalty",
+                            ValueAr = "غرامة مالية",
+                            ValueEn = "Fine",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("20000000-0000-0000-0000-000000000002"),
+                            IsActive = true,
+                            Key = "IMPRISONMENT",
+                            Order = 2,
+                            Type = "CrimePenalty",
+                            ValueAr = "سجن",
+                            ValueEn = "Imprisonment",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("20000000-0000-0000-0000-000000000003"),
+                            IsActive = true,
+                            Key = "COMMUNITY_SERVICE",
+                            Order = 3,
+                            Type = "CrimePenalty",
+                            ValueAr = "خدمة المجتمع",
+                            ValueEn = "Community Service",
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        });
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.SyncActionAPI", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Entity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SyncActionAPI");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.SyncHistory", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Entity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastRunAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastRunStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SyncHistories");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.SyncLog", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Entity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ResponseCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SyncLogs");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.AuditingAndIntegration.SystemSetting", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("SystemSettings");
+                });
+
             modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -1991,6 +2787,96 @@ namespace Infrastrcuture.Migrations
                             displayName = "Ahmed Ayman",
                             isActive = true,
                             isDeleted = false
+                        });
+                });
+
+            modelBuilder.Entity("Infrastrcuture.HelperEntites.ContractTemplate", b =>
+                {
+                    b.Property<Guid>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("createdAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("createdBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("deletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("deletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("deletionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("rowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime?>("updatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("updatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("versionNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("ContractTemplates");
+
+                    b.HasData(
+                        new
+                        {
+                            id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                            Content = "<!DOCTYPE html>\r\n<html lang=\"ar\">\r\n<head>\r\n<meta charset=\"UTF-8\">\r\n<title>عقد إيجار</title>\r\n<style>\r\n    body {\r\n        direction: rtl; /* الكتابة من اليمين لليسار */\r\n        font-family: 'Arial', sans-serif;\r\n        background-color: #f9f9f9;\r\n        display: flex;\r\n        justify-content: center;\r\n        align-items: center;\r\n        height: 100vh;\r\n        margin: 0;\r\n    }\r\n\r\n    .paper {\r\n        background-color: white;\r\n        width: 800px;\r\n        padding: 40px;\r\n        box-shadow: 0 0 20px rgba(0,0,0,0.2);\r\n        border: 1px solid #ccc;\r\n    }\r\n\r\n    h1 {\r\n        text-align: center;\r\n        margin-bottom: 40px;\r\n    }\r\n\r\n    p {\r\n        font-size: 18px;\r\n        line-height: 1.8;\r\n        margin: 20px 0;\r\n    }\r\n\r\n    input {\r\n        border: none;\r\n        border-bottom: 1px solid #000;\r\n        width: 300px;\r\n        font-size: 18px;\r\n        outline: none;\r\n    }\r\n</style>\r\n</head>\r\n<body>\r\n    <div class=\"paper\">\r\n        <h1>عقد إيجار</h1>\r\n        <p>تم الاتفاق بين السيد/السيدة <input type=\"text\" placeholder=\"الاسم\"> بتاريخ <input type=\"text\" placeholder=\"التاريخ\"></p>\r\n        <p>مدة العقد: <input type=\"text\" placeholder=\"عدد الأيام\"> أيام</p>\r\n        <p>القيمة: <input type=\"text\" placeholder=\"المبلغ\"> جنيه</p>\r\n        <p>تفاصيل إضافية: <input type=\"text\" placeholder=\"أدخل التفاصيل\"></p>\r\n    </div>\r\n</body>\r\n</html>\r\n",
+                            Name = "عقد إيجار",
+                            TypeId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                            Content = "\r\n<html lang='ar'>\r\n<head>\r\n<meta charset='UTF-8'>\r\n<style>\r\n    body {\r\n        direction: rtl;\r\n        font-family: 'Arial', sans-serif;\r\n        background-color: #f9f9f9;\r\n        display: flex;\r\n        justify-content: center;\r\n        align-items: center;\r\n        height: 100vh;\r\n        margin: 0;\r\n    }\r\n    .paper {\r\n        background-color: white;\r\n        width: 800px;\r\n        padding: 40px;\r\n        box-shadow: 0 0 20px rgba(0,0,0,0.2);\r\n        border: 1px solid #ccc;\r\n    }\r\n    h1 { text-align: center; margin-bottom: 40px; }\r\n    p { font-size: 18px; line-height: 1.8; margin: 20px 0; }\r\n    input { border: none; border-bottom: 1px solid #000; width: 300px; font-size: 18px; outline: none; }\r\n</style>\r\n</head>\r\n<body>\r\n    <div class='paper'>\r\n        <h1>فاتورة مبيعات</h1>\r\n        <p>تم إصدار الفاتورة للعميل: <input type='text' placeholder='اسم العميل'></p>\r\n        <p>تاريخ الفاتورة: <input type='text' placeholder='التاريخ'></p>\r\n        <p>المبلغ: <input type='text' placeholder='المبلغ'> جنيه</p>\r\n        <p>ملاحظات: <input type='text' placeholder='أدخل الملاحظات'></p>\r\n    </div>\r\n</body>\r\n</html>",
+                            Name = "فاتورة مبيعات",
+                            TypeId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                            Content = "\r\n<html lang='ar'>\r\n<head>\r\n<meta charset='UTF-8'>\r\n<style>\r\n    body {\r\n        direction: rtl;\r\n        font-family: 'Arial', sans-serif;\r\n        background-color: #f9f9f9;\r\n        display: flex;\r\n        justify-content: center;\r\n        align-items: center;\r\n        height: 100vh;\r\n        margin: 0;\r\n    }\r\n    .paper {\r\n        background-color: white;\r\n        width: 800px;\r\n        padding: 40px;\r\n        box-shadow: 0 0 20px rgba(0,0,0,0.2);\r\n        border: 1px solid #ccc;\r\n    }\r\n    h1 { text-align: center; margin-bottom: 40px; }\r\n    p { font-size: 18px; line-height: 1.8; margin: 20px 0; }\r\n    input { border: none; border-bottom: 1px solid #000; width: 300px; font-size: 18px; outline: none; }\r\n</style>\r\n</head>\r\n<body>\r\n    <div class='paper'>\r\n        <h1>تقرير متابعة</h1>\r\n        <p>تم إعداد التقرير للعميل: <input type='text' placeholder='اسم العميل'></p>\r\n        <p>تاريخ التقرير: <input type='text' placeholder='التاريخ'></p>\r\n        <p>ملاحظات: <input type='text' placeholder='أدخل الملاحظات'></p>\r\n        <p>إجراء لاحق: <input type='text' placeholder='الإجراء التالي'></p>\r\n    </div>\r\n</body>\r\n</html>",
+                            Name = "تقرير متابعة",
+                            TypeId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            createdAt = new DateTime(2025, 11, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            createdBy = "SystemSeed",
+                            isDeleted = false,
+                            versionNo = 0
                         });
                 });
 
@@ -2261,7 +3147,7 @@ namespace Infrastrcuture.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastrcuture.Users.Lawyer", null)
+                    b.HasOne("Infrastrcuture.Auth.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("assignedUserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -2395,6 +3281,36 @@ namespace Infrastrcuture.Migrations
                     b.Navigation("Case");
                 });
 
+            modelBuilder.Entity("Domain.Entites.LitigantCrime", b =>
+                {
+                    b.HasOne("Domain.Entites.Case", "Case")
+                        .WithMany("Crimes")
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastrcuture.AuditingAndIntegration.RefernceData", null)
+                        .WithMany()
+                        .HasForeignKey("CrimeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entites.Litigant", "Litigant")
+                        .WithMany("Crimes")
+                        .HasForeignKey("LitigantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Infrastrcuture.AuditingAndIntegration.RefernceData", null)
+                        .WithMany()
+                        .HasForeignKey("PenaltyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Case");
+
+                    b.Navigation("Litigant");
+                });
+
             modelBuilder.Entity("Domain.Entites.Permissions.RolePermission", b =>
                 {
                     b.HasOne("Domain.Entites.Permissions.Permission", "Permission")
@@ -2438,6 +3354,15 @@ namespace Infrastrcuture.Migrations
                         .IsRequired();
 
                     b.Navigation("Case");
+                });
+
+            modelBuilder.Entity("Infrastrcuture.HelperEntites.ContractTemplate", b =>
+                {
+                    b.HasOne("Infrastrcuture.AuditingAndIntegration.RefernceData", null)
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2504,6 +3429,8 @@ namespace Infrastrcuture.Migrations
                 {
                     b.Navigation("CaseLitigants");
 
+                    b.Navigation("Crimes");
+
                     b.Navigation("assignments");
 
                     b.Navigation("caseDocuments");
@@ -2555,6 +3482,8 @@ namespace Infrastrcuture.Migrations
             modelBuilder.Entity("Domain.Entites.Litigant", b =>
                 {
                     b.Navigation("CaseLitigants");
+
+                    b.Navigation("Crimes");
                 });
 
             modelBuilder.Entity("Domain.Entites.Permissions.Permission", b =>

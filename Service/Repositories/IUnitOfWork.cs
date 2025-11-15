@@ -16,6 +16,7 @@ namespace Application.Repositories
         #region Case Repositories
         public ICaseRepository CaseRepository { get;}
         public ICaseAssignmentRepository CaseAssignmentRepository { get;}
+        public ICaseReAssignmentRequestRepository CaseReAssignmentRequestRepository { get;}
         public ICaseEventRepository CaseEventRepository { get;}
         public ILitigantRepository LitigantRepository { get;}
         public ICaseLitigantRepository CaseLitigantRepository { get;}
@@ -25,6 +26,7 @@ namespace Application.Repositories
         public ICaseDocumentRepository CaseDocumentRepository { get; }
         public ICaseDocTypeRepository CaseDocTypeRepository { get; }
         public IFileRepository FileRepository { get;}
+        public ILitigantCrimeRepository LitigantCrimeRepository { get;}
         #endregion
 
         #region Court Repos
@@ -45,7 +47,7 @@ namespace Application.Repositories
         #endregion
 
         #region Save Changes
-        Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         #endregion
     }
 }

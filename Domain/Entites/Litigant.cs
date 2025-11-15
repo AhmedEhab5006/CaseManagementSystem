@@ -20,5 +20,6 @@ namespace Domain.Entites
         public string email { get; set; }
         public string country { get; set; }
         public ICollection<CaseLitigant>? CaseLitigants { get; set; }
+        public ICollection<LitigantCrime>? Crimes { get; set; }
     }
 }

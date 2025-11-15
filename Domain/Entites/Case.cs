@@ -33,6 +33,7 @@ namespace Domain.Entites
         public ICollection<TaskItem>? taskItems { get; set; }
         public ICollection<Hearing>? hearings {  get; set; }
         public ICollection<CaseLitigant>? CaseLitigants { get; set; }
+        public ICollection<LitigantCrime>? Crimes { get; set; }
        
     }
 }

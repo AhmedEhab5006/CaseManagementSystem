@@ -2,11 +2,13 @@
 using Application.Configurations;
 using Application.Interfaces;
 using Application.Interfaces.AccountService;
+using Application.Interfaces.Audtiting;
 using Application.Interfaces.FileServices;
 using Application.Interfaces.ManagementService;
 using Application.Repositories;
 using Application.Repositories.AccountRepos;
 using Application.Repositories.Auth;
+using Application.Repositories.Commons;
 using Application.Repositories.Users;
 using Application.UseCases;
 using Application.UseCases.Auth;
@@ -20,8 +22,10 @@ using Infrastrcuture.Repositories;
 using Infrastrcuture.Repositories.AccountRepos;
 using Infrastrcuture.Repositories.Auth;
 using Infrastrcuture.Repositories.CaseRepositories;
+using Infrastrcuture.Repositories.Commons;
 using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
+using Infrastrcuture.Services.Audting;
 using Infrastrcuture.Services.FileServices;
 using Infrastrcuture.Services.ManagementService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,7 +48,7 @@ internal class Program
 
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new() { Title = "Case Management System", Version = "v1" });
+            options.SwaggerDoc("v1", new() { Title = "Mezan System For Judical Affairs | منصة ميزان للشؤون القضائية", Version = "v1" });
             options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -93,6 +97,8 @@ internal class Program
         builder.Services.AddScoped<IAccountRepository, AccountRepository>();
         builder.Services.AddScoped<IAccountService, AccountService>();
         builder.Services.AddScoped<IManagementService, ManagementService>();
+        builder.Services.AddScoped<IAuditTrailService, AuditService>();
+        builder.Services.AddScoped<IRefernceDataRepostiory, RefernceDataRepository>();
         
         var csvFilePath = Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,

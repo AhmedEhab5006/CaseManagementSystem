@@ -1,0 +1,18 @@
+using Application.Repositories.CaseRepositories;
+using Domain.Entites;
+using Infrastrcuture.Database;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Infrastrcuture.Repositories.CaseRepositories
+{
+    public class CaseReAssignmentRequestRepository(ApplicationDbContext _context, DbSet<CaseReAssignmentRequest> _dbSet) : GenericRepository<CaseReAssignmentRequest>(_context, _dbSet), ICaseReAssignmentRequestRepository
+    {
+    }
+}
+
+

@@ -1,21 +1,27 @@
 ﻿using Application.Commons;
 using Application.Dto_s;
+using Application.Dto_s.Audting;
 using Application.Dto_s.CaseDtos;
 using Application.Interfaces;
 using Application.Repositories;
+using Application.Repositories.Auth;
 using Application.Repositories.CaseRepositories;
+using Application.Repositories.Commons;
 using Application.Repositories.Users;
 using Application.UseCases;
 using AutoMapper;
 using Domain.Entites;
 using Domain.Enums;
+using Infrastrcuture.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System.Formats.Asn1;
 
 namespace Infrastrcuture.Services
 {
     public class CaseService(IMapper _mapper, IUnitOfWork _unitOfWork,
-                                ILawyerRepository _lawyerRepository, ICacheService _cacheService) : ICaseService
+                                ICacheService _cacheService , 
+                                IAuthRepository _authRepository , IRefernceDataRepostiory _refernceDataRepostiory) : ICaseService
     {
 
         #region Add Methods
@@ -39,7 +45,6 @@ namespace Infrastrcuture.Services
                 entity.versionNo = 1;
                 entity.caseId = caseId ?? dto.caseId;
 
-                // تحقق من وجود الكيانات المرتبطة
                 var caseEntity = await _unitOfWork.CaseRepository.GetByIdAsync(entity.caseId, true);
                 if (caseEntity is null)
                     return CaseLitigantAddVaildatation.casewasnotfound;
@@ -56,6 +61,15 @@ namespace Infrastrcuture.Services
             }
 
             await _unitOfWork.CaseLitigantRepository.AddRangeAsync(caseLitigantEntities);
+            await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+            {
+                CaseId = Guid.Parse(_cacheService.Get("currentCaseId")),
+                eventType = AudtingActions.Insert.ToString(),
+                details = "تسجيل بيانات الدعوى في النظام وعمل اسناد اولي للمحامي المختص",
+                createdAt = DateTime.UtcNow,
+                createdBy = litigantDtos.FirstOrDefault().createdBy,
+                versionNo = 1
+            });
 
             var result = await _unitOfWork.SaveChangesAsync();
 
@@ -110,6 +124,15 @@ namespace Infrastrcuture.Services
 
 
             await _unitOfWork.CaseDocumentRepository.AddAsync(caseDocumentEntity);
+            //await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+            //{
+            //    CaseId = Guid.Parse(_cacheService.Get("currentCaseId")) ,
+            //    eventType = AudtingActions.Insert.ToString(),
+            //    details = "تسجيل بيانات الدعوى في النظام وعمل اسناد اولي للمحامي المختص",
+            //    createdAt= DateTime.UtcNow,
+            //    createdBy = caseDocumentAddDto.createdBy,
+            //    versionNo = 1
+            //});
             
             if(await _unitOfWork.SaveChangesAsync() > 0)
             {
@@ -253,7 +276,6 @@ namespace Infrastrcuture.Services
 
             var currentCaseId = _cacheService.Get("currentCaseId");
 
-            // Try to get the case ID once if available
             Guid? cachedCaseId = null;
             if (currentCaseId is not null && Guid.TryParse(currentCaseId, out var parsedId))
                 cachedCaseId = parsedId;
@@ -269,13 +291,11 @@ namespace Infrastrcuture.Services
 
                 caseAssignment.CaseId = cachedCaseId ?? dto.CaseId;
 
-                // Validate case existence
                 var foundCase = await _unitOfWork.CaseRepository.GetByIdAsync(caseAssignment.CaseId, true);
                 if (foundCase is null)
                     return CaseAssignmentServiceValidatation.casewasnnotfound;
 
-                // Validate lawyer existence
-                var foundLawyer = await _lawyerRepository.GetLawyerByIdAsync(dto.assignedUserId);
+                var foundLawyer = await _authRepository.GetByIdAsync(dto.assignedUserId);
                 if (foundLawyer is null)
                     return CaseAssignmentServiceValidatation.lawyerwasnnotfound;
 
@@ -289,6 +309,8 @@ namespace Infrastrcuture.Services
                 return CaseAssignmentServiceValidatation.done;
 
             return CaseAssignmentServiceValidatation.error;
+
+
         }
 
     
@@ -355,11 +377,61 @@ namespace Infrastrcuture.Services
 
         public async Task<LawyerFullDataReadDto?> GetCaseLawyersFullDataAsync(string lawyerId)
         {
-            var data = await _lawyerRepository.GetLawyerByIdAsync(lawyerId);
+            var data = await _authRepository.GetByIdAsync(lawyerId);
+            var LawyerCases = await _unitOfWork.CaseAssignmentRepository.GetByPropertyAsync("assignedUserId", lawyerId);
+            int numberOfClosedCases = 0;
+            int numberOfCurrentCases = 0;
+            int numberOfPendingCases = 0;
+            int numberOfActiveCases = 0;
+
+            if (LawyerCases.Any())
+            {
+                foreach (var c in LawyerCases)
+                {
+                    var currentCase = await _unitOfWork.CaseRepository.GetByIdAsync(c.CaseId);
+                    if (currentCase.status == CaseStatus.Closed)
+                    {
+                        numberOfClosedCases += 1;
+                    }
+
+                    if (currentCase.status == CaseStatus.UnderStudy)
+                    {
+                        numberOfCurrentCases += 1;
+                        numberOfActiveCases += 1;
+
+                    }
+
+
+                    if (currentCase.status == CaseStatus.Registered)
+                    {
+                        numberOfPendingCases += 1;
+                        numberOfCurrentCases += 1;
+
+
+                    }
+                }
+            }
+
+
+            var lawyer = new LawyerFullDataReadDto
+            {
+                creator = data.CreatedBy.ToString(),
+                creationDate = data.CreatedAt.ToString(),
+                Email = data.Email,
+                Id = data.Id,
+                modificationDate = data.ModifiedAt != null ? data.ModifiedAt.ToString() : "لم يتم التعديل بعد" ,
+                modifier = data.ModifiedBy != null ? data.ModifiedBy.ToString() : "لم يتم التعديل بعد",
+                Name = data.DisplayName,
+                numberOfClosedCases = numberOfClosedCases,
+                numberOfCurrentCases = numberOfCurrentCases,
+                numberOfPendingCases = numberOfPendingCases,
+                phoneNumber = !string.IsNullOrEmpty(data.PhoneNumber) ? data.PhoneNumber : "لم تتم اضافة رقم الهاتف" ,
+                UserName = data.UserName,
+            } ;
 
             if (data is not null)
             {
-                return data;
+                return lawyer;
             }
 
             return null;
@@ -368,10 +440,14 @@ namespace Infrastrcuture.Services
         public async Task<LitigantDto?> GetCaseLitigantFullDataAsync(Guid litigantId)
         {
             var result = await _unitOfWork.LitigantRepository.GetByIdAsync(litigantId);
+            var caseLitigant = await _unitOfWork.CaseLitigantRepository.GetByPropertyAsync("litigantId", litigantId);
+            var role = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(caseLitigant.FirstOrDefault().roleId);
+            var roleName = role.roleName;
 
             if (result is not null)
             {
                 var mapped = _mapper.Map<LitigantDto>(result);
+                mapped.Type = roleName;
                 return mapped;
             }
 
@@ -498,6 +574,206 @@ namespace Infrastrcuture.Services
             }
 
             return null;
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>> GetAvailableCrimesAsync()
+        {
+            var crimes = await _refernceDataRepostiory.GetCrimesAsync();
+            var returnedData = new List<CaseDropDownMenuGetDto>();
+
+            foreach(var crime in crimes)
+            {
+                var dto = new CaseDropDownMenuGetDto
+                {
+                    Id = crime.id,
+                    Name = crime.ValueAr
+                };
+
+                returnedData.Add(dto);
+            }
+
+            return returnedData;
+
+        }
+
+        public async Task<AddCrimeValidations> AddCrimeToLitigantAsync(CrimeAddDto crimeAdd)
+        {
+            var Case = await _unitOfWork.CaseRepository.GetByIdAsync(crimeAdd.CaseId); 
+            var litigant = await _unitOfWork.LitigantRepository.GetByIdAsync(crimeAdd.LitigantId);
+            var Crime = await _refernceDataRepostiory.GetByIdAsync(crimeAdd.CrimeId);
+
+            if (crimeAdd.PenaltyId != null) {
+                var penalty = await _refernceDataRepostiory.GetByIdAsync(crimeAdd.PenaltyId);
+                if (penalty == null)
+                {
+                    return AddCrimeValidations.PenaltyNotFound;
+                }
+            }
+
+            if (Case == null)
+            {
+                return AddCrimeValidations.CaseNotFound;
+            }
+
+            if (litigant == null)
+            {
+                return AddCrimeValidations.LitigantNotFound;
+            }
+
+            if (Crime == null)
+            {
+                return AddCrimeValidations.CrimeNotFound;
+            }
+
+
+            var exists = await _unitOfWork.LitigantCrimeRepository.GetByPropertyAsync("LitigantId", crimeAdd.LitigantId);
+            if (exists is not null)
+            {
+                foreach (var item in exists)
+                {
+                    if (item.CrimeId == crimeAdd.CrimeId)
+                    {
+                        return AddCrimeValidations.CrimeAlreadyAdded;
+                    }
+
+                    if (item.PenaltyId == crimeAdd.PenaltyId)
+                    {
+                        return AddCrimeValidations.PenaltyAlreadyAdded;
+                    }
+                }
+            }
+
+            
+
+            await _unitOfWork.LitigantCrimeRepository.AddAsync(new LitigantCrime
+            {
+                CaseId = crimeAdd.CaseId,
+                PenaltyId = crimeAdd.PenaltyId,
+                LitigantId = crimeAdd.LitigantId,
+                CrimeId = crimeAdd.CrimeId,
+                createdAt = DateTime.Now,
+                createdBy = crimeAdd.createdBy,
+            });
+
+
+            await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+            {
+                CaseId = crimeAdd.CaseId,
+                eventType = AudtingActions.Update.ToString(),
+                details = $"إضافة جريمة «{Crime.ValueAr}» للمتهم «{litigant.firstNameAR} {litigant.lastNameAR}»",
+                createdAt = DateTime.UtcNow,
+                createdBy = crimeAdd.createdBy,
+                versionNo = 1
+            });
+
+            if (await _unitOfWork.SaveChangesAsync() > 0)
+            {
+                return AddCrimeValidations.Added;
+            }
+
+            return AddCrimeValidations.Error;
+            
+        }
+
+        public async Task<PagedResult<CrimeReadDto>> GetLitigantCrimesInCase(Guid litigantId, Guid CaseId , int pageNumber , int pageSize)
+        {
+            var crimes = await _unitOfWork.LitigantCrimeRepository.GetManyByPropertiesAsync(new Dictionary<string, object> {
+                { "CaseId" , CaseId },
+                { "LitigantId" , litigantId }
+                });
+
+            if (crimes.Any())
+            {
+                var caseName = await _unitOfWork.CaseRepository.GetByIdAsync(CaseId);
+
+                var caseCrimes = new List<CrimeReadDto>();
+                foreach (var crime in crimes)
+                {
+                    var crimeData = await _refernceDataRepostiory.GetByIdAsync(crime.CrimeId);
+                    var crimeName = crimeData.ValueAr;
+                    var currentCrime = new CrimeReadDto
+                    {
+                        CaseId = CaseId,
+                        CaseName = caseName.caseNumber,
+                        ClaimDate = crime.createdAt.ToString("yyyy-MM-yy"),
+                        CrimeId = crimeData.id,
+                        CrimeName = crimeName,
+                    };
+
+                    caseCrimes.Add(currentCrime);
+                    
+                }
+
+                var pagedData = caseCrimes
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+                return new PagedResult<CrimeReadDto>
+                {
+                    Data = pagedData,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalRecords = caseCrimes.Count
+                };
+
+            }
+
+            return new PagedResult<CrimeReadDto>
+            {
+                Data = Enumerable.Empty<CrimeReadDto>(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = 0
+            };
+        }
+
+        public async Task<PagedResult<CaseHistoryReadDto>> GetCaseHistory(Guid caseId , int pageNumber , int pageSize)
+        {
+            var current = await _unitOfWork.CaseEventRepository.GetByPropertyAsync("CaseId", caseId);
+            if (current.Any())
+            {
+                var list = new List<CaseHistoryReadDto>();
+                foreach(var Case in current)
+                {
+                    var dto = new CaseHistoryReadDto
+                    {
+                        ActionType = Case.eventType,
+                        Actor = Case.createdBy,
+                        details = Case.details,
+                        time = Case.createdAt
+
+
+                    };
+
+                    list.Add(dto);
+
+                    }
+
+                var pagedData = list
+                     .Skip((pageNumber - 1) * pageSize)
+                     .Take(pageSize)
+                     .ToList();
+
+                return new PagedResult<CaseHistoryReadDto>
+                {
+                    Data = pagedData,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalRecords = list.Count
+                };
+
+
+
+            }
+
+            return new PagedResult<CaseHistoryReadDto>
+            {
+                Data = Enumerable.Empty<CaseHistoryReadDto>(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = 0
+            };
         }
 
         #endregion
