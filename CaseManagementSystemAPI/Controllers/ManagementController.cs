@@ -1,7 +1,9 @@
 ﻿using Application.Commands.ManagementCommands;
+using Application.Dto_s;
 using Application.Dto_s.Commons;
 using Application.Dto_s.CourtDto_s;
 using Application.Dto_s.ManagementDto_s;
+using Application.Queries.CaseQueries;
 using Application.Queries.ManagementQueries;
 using Application.UseCases.Auth;
 using CaseManagementSystemAPI.ResponseHelpers.ManagementControllerResposneHelper;
@@ -206,5 +208,36 @@ namespace CaseManagementSystemAPI.Controllers
             var result = await _mediator.Send(query);
             return GetCaseReAssignmentRequestsResponseHelper.Map(result);
         }
+
+        [HttpPut("Accept-ReAssignment-Request-{requestId}")]
+        public async Task<IActionResult> AcceptReAssignmentRequest(Guid requestId)
+        {
+            var baseEdit = new BaseEditDto
+            {
+                ModifiedBy = _authService.GetLoggedUserName()
+            };
+
+            var command = new AcceptCaseReAssignmentRequestCommand(requestId, baseEdit);
+            var result = await _mediator.Send(command);
+            return DeleteAndUpdateResponseHelper.Map(result);
+        }
+
+        [HttpPut("Reject-ReAssignment-Request-{requestId}")]
+        public async Task<IActionResult> RejectReAssignmentRequest(Guid requestId, CaseReAssignmentRejectionDto rejectionDto)
+        {
+            rejectionDto.ModifiedBy = _authService.GetLoggedUserName();
+            var command = new RejectCaseReAssignmentRequestCommand(requestId, rejectionDto);
+            var result = await _mediator.Send(command);
+            return DeleteAndUpdateResponseHelper.Map(result);
+        }
+
+        [HttpGet("Get-Closed-Cases")]
+        public async Task<IActionResult> GetClosedCases(int pageNumber = 1 , int pageSize = 10)
+        {
+            var query = new GetClosedCasesQuery(pageNumber, pageSize);
+            var result = await _mediator.Send(query);
+            return PagedResultResponseHelper.Map(result);
+        }
+
     }
 }

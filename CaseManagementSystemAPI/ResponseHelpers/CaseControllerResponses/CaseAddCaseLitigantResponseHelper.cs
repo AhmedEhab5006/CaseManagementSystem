@@ -28,6 +28,12 @@ namespace CaseManagementSystemAPI.ResponseHelpers.CaseControllerResponses
                         data: "Desired Litigant Wasn't Found | الطرف المطلوب غير موجود")
                 ),
 
+                CaseLitigantAddVaildatation.AlreadyExixts => new BadRequestObjectResult(
+                   new APIResponseHandler<string>(
+                       400, "Bad Request",
+                       data: "Desired Litigant Already Exist at this case | الطرف المطلوب موجود مضاف بالفعل في هذه الدعوى")
+               ),
+
                 CaseLitigantAddVaildatation.litigantrolewasnotfound => new BadRequestObjectResult(
                     new APIResponseHandler<string>(
                         400, "Bad Request",

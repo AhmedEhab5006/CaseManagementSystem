@@ -19,7 +19,9 @@ namespace Domain.Entites
         public string governate { get; set; }
         public string state { get; set; }
         public string village { get; set; }
+        public string? EndReport { get; set; }
         public string description { get; set; }
+        public bool ReAssign { get; set; }
         public Guid courtId { get; set; }
         public Court? court { get; set; }
         public Guid caseTypeId { get; set; }

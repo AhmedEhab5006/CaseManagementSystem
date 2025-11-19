@@ -37,5 +37,7 @@ namespace Application.Interfaces.ManagementService
         public Task<PagedResult<CourtPrimaryDataReadDto>> GetAllCourtsPrimaryDataAsync(int pageNumber, int pageSize);
         public Task<CourtFullDataReadDto> GetAllCourtFullDataAsync(Guid CourtId);
         public Task<PagedResult<CaseReAssignmentRequestGetDto>> GetCaseReAssignmentRequests(int pageNumber, int pageSize);
+        public Task<DeleteAndUpdateValidatation> AcceptCaseReAssignmentRequest(Guid requestId, BaseEditDto baseEdit);
+        public Task<DeleteAndUpdateValidatation> RejectCaseReAssignmentRequest(Guid requestId, CaseReAssignmentRejectionDto caseReAssignmentRejectionDto);
     }
 }

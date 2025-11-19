@@ -202,7 +202,8 @@ namespace Infrastrcuture.Mappers
                     .ForMember(dest => dest.CaseId , opt => opt.MapFrom(src => src.id))
                     .ForMember(dest => dest.CourtGrade, opt => opt.MapFrom(src => src.court.courtGrade.nameAR))
                     .ForMember(dest => dest.CaseTitle, opt => opt.MapFrom(src => src.caseTopic.topicName))
-                    .ForMember(dest => dest.CaseType, opt => opt.MapFrom(src => src.caseType.typeName));
+                    .ForMember(dest => dest.CaseType, opt => opt.MapFrom(src => src.caseType.typeName))
+                    .ForMember(dest => dest.ClosingReason, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.EndReport) ? src.EndReport : "غير متاح"));
 
             #endregion
 
@@ -243,6 +244,7 @@ namespace Infrastrcuture.Mappers
                .ForMember(dest => dest.id, opt => opt.MapFrom(src => src.Litigant.id))
                .ForMember(dest => dest.NationalIdNumber, opt => opt.MapFrom(src => src.Litigant.nationalIdNumber))
                .ForMember(dest => dest.NationalIdType, opt => opt.MapFrom(src => src.Litigant.nationalIdType))
+               .ForMember(dest => dest.CaseId, opt => opt.MapFrom(src => src.Case.id))
                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.roleName));
 
             #endregion

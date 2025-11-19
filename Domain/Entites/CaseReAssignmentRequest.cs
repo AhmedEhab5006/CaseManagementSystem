@@ -11,6 +11,7 @@ namespace Domain.Entites
     {
         public string AssignerId { get; set; } = string.Empty;
         public string AssigneeId { get; set; } = string.Empty;
+        public string? RejectionReason { get; set; } = string.Empty;
         public Guid CaseId { get; set; }
         public CaseReAssignmentRequestStates RequestStatus { get; set; }
 

@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 
 namespace Application.Repositories
 {
-    public interface IGenericRepository
+    public interface IGenericRepository<TEntity> where TEntity : BaseEntity
     {
-        public interface IGenericRepository<TEntity> where TEntity : BaseEntity
-        {
+        
             Task<PagedResult<TEntity>> GetAllAsync(int pageNumber , int pageSize , bool asNoTracking = false 
                 , Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null);
             Task<TEntity?> GetByIdAsync(Guid id, bool asNotracking = false 
@@ -21,14 +20,15 @@ namespace Application.Repositories
             Task AddRangeAsync(IEnumerable<TEntity> entitiesList);
             void Update(TEntity entity);
             void Remove(TEntity entity);
-            Task<IEnumerable<TEntity?>> GetByPropertyAsync<TValue>(string propertyName,
-    TValue value,
-    Expression<Func<TEntity, object>>? include = null);
+            Task<IEnumerable<TEntity?>> GetByPropertyAsync<TValue>(
+             string propertyName,
+             TValue value,
+             params Expression<Func<TEntity, object>>[] includes);
             void UpdateRange(IEnumerable<TEntity> entities);
-            Task<IEnumerable<TEntity>> GetManyByPropertiesAsync(Dictionary<string, object> filters, IQueryable<TEntity>? include = null);
+            Task<IEnumerable<TEntity>> GetManyByPropertiesAsync(Dictionary<string, object> filters, params Expression<Func<TEntity, object>>[] includes);
 
 
 
         }
     }
-}
+

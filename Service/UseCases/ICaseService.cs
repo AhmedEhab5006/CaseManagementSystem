@@ -2,6 +2,7 @@
 using Application.Dto_s;
 using Application.Dto_s.Audting;
 using Application.Dto_s.CaseDtos;
+using Application.Dto_s.Commons;
 using Domain.Entites;
 using Domain.Enums;
 using System;
@@ -32,10 +33,14 @@ namespace Application.UseCases
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCaseTopicsForDropDownMenuAsync(); 
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetCourtsForDropDownMenuAsync(); 
         Task<IEnumerable<CaseDropDownMenuGetDto>?> GetLitigantsRoleDropDownMenuAsync(); 
+        Task<IEnumerable<CaseDropDownMenuGetDto>?> GetDocTypesDropDownMenuAsync(); 
         Task<CaseDocumentAddValidation> AddCaseFileAsync(CaseDocumentAddDto caseDocumentAddDto); 
         Task<IEnumerable<CaseDropDownMenuGetDto>> GetAvailableCrimesAsync(); 
         Task<AddCrimeValidations> AddCrimeToLitigantAsync(CrimeAddDto crimeAdd); 
         Task<PagedResult<CrimeReadDto>> GetLitigantCrimesInCase(Guid litigantId , Guid CaseId, int pageNumber, int pageSize); 
         Task<PagedResult<CaseHistoryReadDto>> GetCaseHistory(Guid caseId , int pageNumber , int pageSize); 
+        Task<PagedResult<CaseAttachmentsReadDto>> GetCaseAttachments(Guid caseId , int pageNumber , int pageSize); 
+        Task<DeleteAndUpdateValidatation> DeleteFile(Guid fileId , DeleteDto deleteDto); 
+        Task<PagedResult<CaseReadDto>> GetClosedCases(int pageNumber , int pageSize); 
       }
 }

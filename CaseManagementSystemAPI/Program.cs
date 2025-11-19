@@ -1,4 +1,5 @@
 ﻿using Application;
+using Application.Commons.PermissionModule;
 using Application.Configurations;
 using Application.Interfaces;
 using Application.Interfaces.AccountService;
@@ -6,15 +7,18 @@ using Application.Interfaces.Audtiting;
 using Application.Interfaces.FileServices;
 using Application.Interfaces.ManagementService;
 using Application.Repositories;
+using Application.Repositories;
 using Application.Repositories.AccountRepos;
 using Application.Repositories.Auth;
 using Application.Repositories.Commons;
+using Application.Repositories.ManagementRepos;
 using Application.Repositories.Users;
 using Application.UseCases;
 using Application.UseCases.Auth;
 using Application.UseCases.LawyerService;
 using AutoMapper;
 using CaseManagementSystemAPI.Middlewares;
+using Domain.Entites.Permissions;
 using Infrastrcuture.Auth;
 using Infrastrcuture.Database;
 using Infrastrcuture.Mappers;
@@ -23,15 +27,18 @@ using Infrastrcuture.Repositories.AccountRepos;
 using Infrastrcuture.Repositories.Auth;
 using Infrastrcuture.Repositories.CaseRepositories;
 using Infrastrcuture.Repositories.Commons;
+using Infrastrcuture.Repositories.ManagementRepos;
 using Infrastrcuture.Repositories.Users;
 using Infrastrcuture.Services;
 using Infrastrcuture.Services.Audting;
 using Infrastrcuture.Services.FileServices;
 using Infrastrcuture.Services.ManagementService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Security.Claims;
@@ -39,7 +46,7 @@ using System.Security.Cryptography;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -99,7 +106,9 @@ internal class Program
         builder.Services.AddScoped<IManagementService, ManagementService>();
         builder.Services.AddScoped<IAuditTrailService, AuditService>();
         builder.Services.AddScoped<IRefernceDataRepostiory, RefernceDataRepository>();
-        
+        builder.Services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+
+
         var csvFilePath = Path.Combine(
             Directory.GetParent(Directory.GetCurrentDirectory())!.FullName,
             "Service",
@@ -189,6 +198,26 @@ internal class Program
 
         var app = builder.Build();
 
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permissionRepo = new PermissionRepostiory(context , context.Set<Permission>());
+
+            var pagedPermissions = await permissionRepo.GetAllAsync(1  , int.MaxValue);
+            var permissions = pagedPermissions.Data;
+
+            var authorizationOptions = scope.ServiceProvider
+                                            .GetRequiredService<IOptions<AuthorizationOptions>>()
+                                            .Value;
+
+            foreach (var permission in permissions)
+            {
+                authorizationOptions.AddPolicy(permission.Name, policy =>
+                {
+                    policy.Requirements.Add(new PermissionRequirement(permission.Name));
+                });
+            }
+        }
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -200,7 +229,7 @@ internal class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMiddleware<GlobalExceptionHandler>();
+    //    app.UseMiddleware<GlobalExceptionHandler>();
 
         app.Use(async (context, next) =>
         {

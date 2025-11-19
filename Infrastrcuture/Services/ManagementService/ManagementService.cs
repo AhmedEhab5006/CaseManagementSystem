@@ -555,18 +555,23 @@ namespace Infrastrcuture.Services.ManagementService
             foreach (var request in requests.Data)
             {
                 var currentAssignee = await _authRepository.GetByIdAsync(request.AssigneeId);
+                var currentAssigner = await _authRepository.GetByIdAsync(request.AssignerId);
                 var currentCaseNumber = await _unitOfWork.CaseRepository.GetByIdAsync(request.CaseId , true);
-                
-                var dto = new CaseReAssignmentRequestGetDto
+                if(request.RequestStatus == CaseReAssignmentRequestStates.Pending)
                 {
-                    Status = request.RequestStatus,
-                    RequestSender = request.createdBy,
-                    CaseId = request.CaseId,
-                    RequestId = request.id,
-                    RequestedAssignee = currentAssignee.DisplayName,
-                    CaseNumber = currentCaseNumber.caseNumber
-                };
-                dtos.Add(dto);  
+                    var dto = new CaseReAssignmentRequestGetDto
+                    {
+                        Status = request.RequestStatus,
+                        RequestSender = currentAssigner.DisplayName,
+                        CaseId = request.CaseId,
+                        RequestId = request.id,
+                        RequestedAssignee = currentAssignee.DisplayName,
+                        CaseNumber = currentCaseNumber.caseNumber
+                    };
+                    dtos.Add(dto);
+
+                }
+
             }
             
 
@@ -581,6 +586,97 @@ namespace Infrastrcuture.Services.ManagementService
 
             return returnedData;
 
+        }
+
+        public async Task<DeleteAndUpdateValidatation> AcceptCaseReAssignmentRequest(Guid requestId , BaseEditDto baseEdit)
+        {
+            var request = await _unitOfWork.CaseReAssignmentRequestRepository.GetByIdAsync(requestId);
+        
+            if(request is not null && request.RequestStatus == CaseReAssignmentRequestStates.Pending)
+            {
+                var caseAssignment = await _unitOfWork.CaseAssignmentRepository
+            .GetManyByPropertiesAsync(new Dictionary<string, object>
+            {
+                    {"assignedUserId" , request.AssignerId },
+                    {"CaseId" , request.CaseId}
+            });
+
+                var currentCase = caseAssignment.FirstOrDefault();
+
+                request.versionNo += 1;
+                request.updatedAt = DateTime.UtcNow;
+                request.updatedBy = baseEdit.ModifiedBy;
+                request.RequestStatus = CaseReAssignmentRequestStates.Accepted;
+                currentCase.assignedUserId = request.AssigneeId;
+                currentCase.versionNo += 1;
+                currentCase.updatedAt = DateTime.UtcNow;
+                currentCase.updatedBy = baseEdit.ModifiedBy;
+
+                var oldLawyerName = await _authRepository.GetByIdAsync(request.AssignerId);
+                var newLawyerName = await _authRepository.GetByIdAsync(request.AssigneeId);
+
+
+                _unitOfWork.CaseReAssignmentRequestRepository.Update(request);
+                _unitOfWork.CaseAssignmentRepository.Update(currentCase);
+                await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+                {
+                    CaseId = currentCase.CaseId,
+                    eventType = AudtingActions.Update.ToString(),
+                    details = $"تمت الموافقة على طلب إعادة الإسناد المقدم من المحامي {oldLawyerName.DisplayName} إلى المحامي {newLawyerName.DisplayName}",
+                    createdAt = DateTime.UtcNow,
+                    createdBy = baseEdit.ModifiedBy,
+                    versionNo = 1
+                });
+
+                if(await _unitOfWork.SaveChangesAsync() > 0)
+                {
+                    return DeleteAndUpdateValidatation.Done;
+                }
+
+                return DeleteAndUpdateValidatation.Error;
+
+            }
+
+            return DeleteAndUpdateValidatation.DoesnotExist;
+        }
+
+        public async Task<DeleteAndUpdateValidatation> RejectCaseReAssignmentRequest(Guid requestId , CaseReAssignmentRejectionDto caseReAssignmentRejectionDto)
+        {
+            var request = await _unitOfWork.CaseReAssignmentRequestRepository.GetByIdAsync(requestId);
+
+            if (request is not null && request.RequestStatus == CaseReAssignmentRequestStates.Pending)
+            {
+             
+                request.versionNo += 1;
+                request.updatedAt = DateTime.UtcNow;
+                request.updatedBy = caseReAssignmentRejectionDto.ModifiedBy;
+                request.RequestStatus = CaseReAssignmentRequestStates.Rejected;
+                request.RejectionReason = caseReAssignmentRejectionDto.RejectionReason;
+             
+                var oldLawyerName = await _authRepository.GetByIdAsync(request.AssignerId);
+                var newLawyerName = await _authRepository.GetByIdAsync(request.AssigneeId);
+
+                _unitOfWork.CaseReAssignmentRequestRepository.Update(request);
+                await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+                {
+                    CaseId = request.CaseId,
+                    eventType = AudtingActions.Update.ToString(),
+                    details = $"تم رفض طلب إعادة الإسناد المقدم من المحامي {oldLawyerName.DisplayName} إلى المحامي {newLawyerName.DisplayName}",
+                    createdAt = DateTime.UtcNow,
+                    createdBy = caseReAssignmentRejectionDto.ModifiedBy,
+                    versionNo = 1
+                });
+
+                if (await _unitOfWork.SaveChangesAsync() > 0)
+                {
+                    return DeleteAndUpdateValidatation.Done;
+                }
+
+                return DeleteAndUpdateValidatation.Error;
+
+            }
+
+            return DeleteAndUpdateValidatation.DoesnotExist;
         }
     }
 }

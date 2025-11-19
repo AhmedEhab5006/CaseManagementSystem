@@ -5,6 +5,7 @@ using Application.Queries.FileQueries;
 using CaseManagementSystemAPI.ResponseHelpers.FileControllerResponseHelper;
 using Domain.Entites.Files;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,8 @@ namespace CaseManagementSystemAPI.Controllers
     public class FileController(IMediator _mediator) : ControllerBase
     {
         [HttpPost("Upload-File")]
+        [Authorize(Policy = "Cases.Create")]
+
         public async Task<IActionResult> UploadFile([FromForm] FileUploadDto fileUploadDto)
         {
             var command = new UploadFileCommand(fileUploadDto);
@@ -27,6 +30,8 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Download-File-{fileId}")]
+        [Authorize(Policy = "Files.View")]
+
         public async Task<IActionResult> DownloadFile(Guid fileId)
         {
             var query = new DownloadFileQuery(fileId);

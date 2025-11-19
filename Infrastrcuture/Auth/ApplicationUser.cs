@@ -23,6 +23,8 @@ namespace Infrastrcuture.Auth
         public bool isDeleted { get; set; }
         public string ApplicationUserImagePath { get; set; } = string.Empty;
         public ICollection<UserPermission>? UserPermissions { get; set; }
+        public ICollection<ApplicationUserRole>? UserRoles { get; set; }
+
 
     }
 }

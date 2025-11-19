@@ -2,6 +2,7 @@
 using Application.Dto_s;
 using Application.Dto_s.Audting;
 using Application.Dto_s.CaseDtos;
+using Application.Dto_s.Commons;
 using Application.Interfaces;
 using Application.Repositories;
 using Application.Repositories.Auth;
@@ -9,13 +10,16 @@ using Application.Repositories.CaseRepositories;
 using Application.Repositories.Commons;
 using Application.Repositories.Users;
 using Application.UseCases;
+using Application.UseCases.Exceptions;
 using AutoMapper;
 using Domain.Entites;
 using Domain.Enums;
 using Infrastrcuture.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using System.Collections.Generic;
 using System.Formats.Asn1;
+using System.Net.Mail;
 
 namespace Infrastrcuture.Services
 {
@@ -32,7 +36,8 @@ namespace Infrastrcuture.Services
                 return CaseLitigantAddVaildatation.error;
 
             var caseIdFromCache = _cacheService.Get("currentCaseId");
-            Guid? caseId = caseIdFromCache is not null ? new Guid(caseIdFromCache) : null;
+            
+            Guid caseId = caseIdFromCache is not null ? new Guid(caseIdFromCache) : litigantDtos.FirstOrDefault().caseId;
 
             var caseLitigantEntities = new List<CaseLitigant>();
 
@@ -43,7 +48,9 @@ namespace Infrastrcuture.Services
                 entity.createdAt = DateTime.UtcNow;
                 entity.isDeleted = false;
                 entity.versionNo = 1;
-                entity.caseId = caseId ?? dto.caseId;
+                entity.caseId = caseId != null ? caseId : dto.caseId;
+
+
 
                 var caseEntity = await _unitOfWork.CaseRepository.GetByIdAsync(entity.caseId, true);
                 if (caseEntity is null)
@@ -53,6 +60,45 @@ namespace Infrastrcuture.Services
                 if (litigant is null)
                     return CaseLitigantAddVaildatation.litigantwasnotfound;
 
+                var current = await _unitOfWork.CaseLitigantRepository.GetManyByPropertiesAsync(
+               new Dictionary<string, object>{
+                      {"caseId" , dto.caseId } ,
+                      {"litigantId" , dto.litigantId }});
+
+                if (current.Any())
+                {
+                    return CaseLitigantAddVaildatation.AlreadyExixts;
+                }
+
+
+                var litigantName = await _unitOfWork.LitigantRepository.GetManyByPropertiesAsync(
+                new Dictionary<string, object>{
+                    {"firstNameAR" , litigant.firstNameAR } ,
+                    {"lastNameAR" , litigant.lastNameAR } ,
+                    {"firstNameEN" , litigant.firstNameEN },
+                    { "lastNameEN" , litigant.lastNameEN }
+                } , c => c.CaseLitigants);
+
+
+                var currentOne = litigantName.MaxBy(a=>a.createdAt);
+                foreach(var item in litigantName)
+                {
+                    if (item.CaseLitigants
+                        .Select(a => a.litigantId)
+                        .Contains(item.id) && item.CaseLitigants
+                        .Select(a=>a.caseId).Contains(caseId)){
+
+
+                        _unitOfWork.LitigantRepository.Remove(currentOne);
+                        await _unitOfWork.SaveChangesAsync();
+                        return CaseLitigantAddVaildatation.AlreadyExixts;
+
+
+                    }
+
+                }            
+
+
                 var role = await _unitOfWork.CaseLitigantRoleRepository.GetByIdAsync(dto.roleId, true);
                 if (role is null)
                     return CaseLitigantAddVaildatation.litigantrolewasnotfound;
@@ -61,15 +107,32 @@ namespace Infrastrcuture.Services
             }
 
             await _unitOfWork.CaseLitigantRepository.AddRangeAsync(caseLitigantEntities);
+            
+            if(caseIdFromCache is not null)
+            {
+                await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+                {
+                    CaseId = caseId,
+                    eventType = AudtingActions.Insert.ToString(),
+                    details = "تسجيل بيانات الدعوى في النظام وعمل اسناد اولي للمحامي المختص",
+                    createdAt = DateTime.UtcNow,
+                    createdBy = litigantDtos.FirstOrDefault().createdBy,
+                    versionNo = 1
+                });
+
+            }
+
             await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
             {
-                CaseId = Guid.Parse(_cacheService.Get("currentCaseId")),
-                eventType = AudtingActions.Insert.ToString(),
-                details = "تسجيل بيانات الدعوى في النظام وعمل اسناد اولي للمحامي المختص",
+                CaseId = caseId,
+                eventType = AudtingActions.Update.ToString(),
+                details = "اضافة طرف جديد للدعوى",
                 createdAt = DateTime.UtcNow,
                 createdBy = litigantDtos.FirstOrDefault().createdBy,
                 versionNo = 1
             });
+
+
 
             var result = await _unitOfWork.SaveChangesAsync();
 
@@ -99,7 +162,8 @@ namespace Infrastrcuture.Services
                 FileAssetId = caseDocumentAddDto.DocumentId,
                 VsId = caseDocumentAddDto.VsId,
                 createdAt = DateTime.UtcNow,
-                versionNo = 1
+                versionNo = 1,
+                createdBy= caseDocumentAddDto.createdBy,
             };
 
             
@@ -124,17 +188,7 @@ namespace Infrastrcuture.Services
 
 
             await _unitOfWork.CaseDocumentRepository.AddAsync(caseDocumentEntity);
-            //await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
-            //{
-            //    CaseId = Guid.Parse(_cacheService.Get("currentCaseId")) ,
-            //    eventType = AudtingActions.Insert.ToString(),
-            //    details = "تسجيل بيانات الدعوى في النظام وعمل اسناد اولي للمحامي المختص",
-            //    createdAt= DateTime.UtcNow,
-            //    createdBy = caseDocumentAddDto.createdBy,
-            //    versionNo = 1
-            //});
-            
-            if(await _unitOfWork.SaveChangesAsync() > 0)
+             if(await _unitOfWork.SaveChangesAsync() > 0)
             {
                 return CaseDocumentAddValidation.Added;
             }
@@ -190,7 +244,7 @@ namespace Infrastrcuture.Services
 
 
 
-            _cacheService.Set("currentCaseId", caseEntity.id.ToString(), TimeSpan.FromHours(5));
+            _cacheService.Set("currentCaseId", caseEntity.id.ToString(), TimeSpan.FromMinutes(15));
 
 
 
@@ -246,6 +300,8 @@ namespace Infrastrcuture.Services
 
             foreach (var dto in litigantDtos)
             {
+
+
                 var entity = _mapper.Map<Litigant>(dto);
                 entity.id = Guid.NewGuid();
                 entity.createdAt = DateTime.UtcNow;
@@ -253,7 +309,10 @@ namespace Infrastrcuture.Services
                 entity.versionNo = 1;
 
                 litigantEntities.Add(entity);
+
+
             }
+
 
             await _unitOfWork.LitigantRepository.AddRangeAsync(litigantEntities);
             var result = await _unitOfWork.SaveChangesAsync();
@@ -284,10 +343,24 @@ namespace Infrastrcuture.Services
             {
                 var caseAssignment = _mapper.Map<CaseAssignment>(dto);
 
+                var current = await _unitOfWork.CaseAssignmentRepository.GetManyByPropertiesAsync(
+                  new Dictionary<string, object>{
+                      {"CaseId" , dto.CaseId } ,
+                      {"assignedUserId" , dto.assignedUserId }
+                        });
+
+                if (current.Any())
+                {
+                    return CaseAssignmentServiceValidatation.AlreadyAssigned;
+                }
+
+
                 caseAssignment.id = Guid.NewGuid();
                 caseAssignment.createdAt = DateTime.UtcNow;
                 caseAssignment.isDeleted = false;
                 caseAssignment.versionNo = 1;
+
+               
 
                 caseAssignment.CaseId = cachedCaseId ?? dto.CaseId;
 
@@ -461,7 +534,7 @@ namespace Infrastrcuture.Services
             if (result is not null)
             {
                 var mapped  = _mapper.Map<IEnumerable<LitigantReadDto>>(result.Data);
-                
+
                 var returnedData = new PagedResult<LitigantReadDto>
                 {
                     Data = mapped,
@@ -770,6 +843,155 @@ namespace Infrastrcuture.Services
             return new PagedResult<CaseHistoryReadDto>
             {
                 Data = Enumerable.Empty<CaseHistoryReadDto>(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = 0
+            };
+        }
+
+        public async Task<IEnumerable<CaseDropDownMenuGetDto>?> GetDocTypesDropDownMenuAsync()
+        {
+            var data = await _unitOfWork.CaseDocTypeRepository.GetAll().ToListAsync();
+
+            if (data.Count > 0)
+            {
+
+                var types = new List<CaseDropDownMenuGetDto>();
+                foreach (var type in data)
+                {
+                    var returnedData = new CaseDropDownMenuGetDto
+                    {
+                        Id = type.id,
+                        Name = type.Type
+                    };
+
+                    types.Add(returnedData);
+                }
+
+                return types;
+            }
+
+            return null;
+        }
+
+        public async Task<PagedResult<CaseAttachmentsReadDto>> GetCaseAttachments(Guid caseId, int pageNumber, int pageSize)
+        {
+            var caseDocument = await _unitOfWork.CaseDocumentRepository.GetByPropertyAsync("CaseId", caseId , c=>c.FileAsset);
+            if (caseDocument.Any())
+            {
+                var attachments = new List<CaseAttachmentsReadDto>();
+                foreach (var attachment in caseDocument)
+                {
+                    var dto = new CaseAttachmentsReadDto
+                    {
+                        CaseId = attachment.CaseId,
+                        CreatedAt = attachment.createdAt.ToString("yyyy-MM-yy"),
+                        FileId = attachment.FileAsset.id,
+                        Description = !string.IsNullOrEmpty(attachment.description) ? attachment.description : "غير متاح",
+                        UniqueNo = !string.IsNullOrEmpty(attachment.FileAsset.FileName) ? attachment.FileAsset.FileName : "غير متاح",
+                        IdInCaseDocuemntTable = attachment.id,
+                        VsId = !string.IsNullOrEmpty(attachment.VsId) ? attachment.VsId : "غير متاح"
+                    };
+
+                   attachments.Add(dto);
+                }
+
+                var pagedData = attachments
+                 .Skip((pageNumber - 1) * pageSize)
+                  .Take(pageSize)
+                    .ToList();
+
+                return new PagedResult<CaseAttachmentsReadDto>
+                {
+                    Data = pagedData,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalRecords = attachments.Count
+                };
+
+
+            }
+
+            return new PagedResult<CaseAttachmentsReadDto>
+            {
+                Data = Enumerable.Empty<CaseAttachmentsReadDto>(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalRecords = 0
+            };
+
+        }
+
+        public async Task<DeleteAndUpdateValidatation> DeleteFile(Guid fileId, DeleteDto deleteDto)
+        {
+            var file = await _unitOfWork.CaseDocumentRepository.GetByIdAsync(fileId ,include:  
+                        c=>c.Include(c=>c.FileAsset));
+
+            if(file is not null)
+            {
+                file.versionNo += 1;
+                file.deletedAt = DateTime.Now;
+                file.deletedBy = deleteDto.DeletedBy;
+                file.deletionReason = deleteDto.DeletionReason;
+                file.isDeleted = true;
+                file.FileAsset.deletedAt = DateTime.Now;
+                file.FileAsset.deletedBy = deleteDto.DeletedBy;
+                file.FileAsset.deletionReason = deleteDto.DeletionReason;
+                file.FileAsset.isDeleted = true;
+                file.FileAsset.versionNo += 1;
+
+                await _unitOfWork.CaseEventRepository.AddAsync(new CaseEvent
+                {
+                    CaseId = file.CaseId,
+                    eventType = AudtingActions.Update.ToString(),
+                    details = $"تم حذف المرفق {file.FileAsset.FileName} من قبل المستخدم {file.deletedBy}",
+                    createdAt = DateTime.UtcNow,
+                    createdBy = file.deletedBy,
+                    versionNo = 1
+                });
+
+                _unitOfWork.CaseDocumentRepository.Update(file);
+                if (await _unitOfWork.SaveChangesAsync() > 0)
+                {
+                    return DeleteAndUpdateValidatation.Done;
+                }
+
+                return DeleteAndUpdateValidatation.Error;
+
+            }
+
+            return DeleteAndUpdateValidatation.DoesnotExist;
+        }
+
+        public async Task<PagedResult<CaseReadDto>> GetClosedCases(int pageNumber, int pageSize)
+        {
+            var result = await _unitOfWork.CaseRepository.GetByPropertyAsync("status" , CaseStatus.Closed , 
+                c=>c.caseType , 
+                c=>c.caseTopic ,
+                c=>c.court,
+                c => c.court.courtGrade);
+
+            if (result is not null)
+            {
+                var mapped = _mapper.Map<IEnumerable<CaseReadDto>>(result);
+
+                var pagedData = mapped
+                .Skip((pageNumber - 1) * pageSize)
+                 .Take(pageSize)
+                   .ToList();
+
+                return new PagedResult<CaseReadDto>
+                {
+                    Data = mapped,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalRecords = mapped.Count()
+                };
+            }
+
+            return new PagedResult<CaseReadDto>
+            {
+                Data = Enumerable.Empty<CaseReadDto>(),
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalRecords = 0

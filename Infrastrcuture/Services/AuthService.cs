@@ -1,4 +1,5 @@
-﻿using Application.UseCases.Auth;
+﻿using Application.Repositories.Auth;
+using Application.UseCases.Auth;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Infrastrcuture.Services
 {
-    public class AuthService(IHttpContextAccessor _httpContextAccessor) : IAuthService
+    public class AuthService(IHttpContextAccessor _httpContextAccessor , IAuthRepository _authRepository) : IAuthService
 
     {
         public string GetLoggedId()
@@ -18,6 +19,11 @@ namespace Infrastrcuture.Services
             var id = user.FindFirst("Id")?.Value.ToString();
 
             return id;
+        }
+
+        public async Task<IEnumerable<string>> GetLoggedPermissions()
+        {
+            return await _authRepository.GetUserPermissions(GetLoggedId());
         }
 
         public string GetLoggedUserName()

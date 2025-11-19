@@ -324,5 +324,30 @@ namespace Infrastrcuture.Repositories.Auth
 
             return roleDtos;
         }
+
+        public async Task<IEnumerable<string>> GetUserPermissions(string userId)
+        {
+            var userPermissions = await _context.UserPermissions
+                .Where(up => up.UserId == userId)
+                .Join(_context.Permissions,
+                      up => up.PermissionId,
+                      p => p.id,
+                      (up, p) => p.Name)
+                .ToListAsync();
+
+            var rolePermissions = await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Join(_context.RolePermissions,
+                      ur => ur.RoleId,
+                      rp => rp.RoleId,
+                      (ur, rp) => rp.PermissionId)
+                .Join(_context.Permissions,
+                      rpId => rpId,
+                      p => p.id,
+                      (rpId, p) => p.Name)
+                .ToListAsync();
+
+            return userPermissions.Concat(rolePermissions).Distinct();
+        }
     }
 }

@@ -8,6 +8,6 @@ namespace Domain.Enums
 {
     public enum CaseLitigantAddVaildatation
     {
-        done , casewasnotfound , litigantwasnotfound , litigantrolewasnotfound , error
+        done , casewasnotfound , litigantwasnotfound , litigantrolewasnotfound , error , AlreadyExixts
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Application.Commands.CaseCommands.AddCommands;
+using Application.Commands.CaseCommands.DeleteCommands;
 using Application.Commons;
 using Application.Dto_s;
 using Application.Dto_s.CaseDtos;
+using Application.Dto_s.Commons;
 using Application.Features.Case.Commands.AddCrimeToLitigant;
 using Application.Handlers.CaseHandlers.CommandHandlers;
 using Application.Queries.CaseQueries;
@@ -9,7 +11,9 @@ using Application.UseCases;
 using Application.UseCases.Auth;
 using CaseManagementSystemAPI.ResponseHandlers;
 using CaseManagementSystemAPI.ResponseHelpers.CaseControllerResponses;
+using CaseManagementSystemAPI.ResponseHelpers.ManagementControllerResposneHelper;
 using Domain.Entites;
+using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,16 +23,16 @@ namespace CaseManagementSystemAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CaseController(IAuthService _authService , IMediator _mediator) : ControllerBase
+    public class CaseController(IAuthService _authService, IMediator _mediator) : ControllerBase
     {
 
         #region Add End Points
 
         [HttpPost("Add-Case-Primary-Data")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCasePrimaryData(CaseAddDto caseAddDto)
         {
-            
+
             caseAddDto.createdBy = _authService.GetLoggedUserName();
             var command = new CaseAddCommand(caseAddDto);
             var result = await _mediator.Send(command);
@@ -38,10 +42,10 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Assign-Case-To-Lawyer")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AssignCaseToLawyer(IEnumerable<CaseAssignmentDto> caseAssignments)
         {
-           
+
             var createdBy = _authService.GetLoggedUserName();
             var assignerId = _authService.GetLoggedId();
 
@@ -60,7 +64,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Add-Case-Topic")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCaseTopic(CaseTopicAddDto caseTopicAddDto)
         {
             caseTopicAddDto.createdBy = _authService.GetLoggedUserName();
@@ -73,7 +77,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Add-Case-Type")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCaseType(CaseTypeAddDto caseTypeAddDto)
         {
             caseTypeAddDto.createdBy = _authService.GetLoggedUserName();
@@ -84,7 +88,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Add-Case-Litigant-Role")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCaseLitigantRole(CaseLitigantRoleDto caseLitigantAddDto)
         {
             caseLitigantAddDto.createdBy = _authService.GetLoggedUserName();
@@ -95,7 +99,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Add-Litigant")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddLitigant(List<LitigantDto> litigantAddDto)
         {
             foreach (var litigant in litigantAddDto)
@@ -111,7 +115,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpPost("Add-Case-Litigant")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCaseLitigant(List<CaseLtitgantDto> caseLitigantAddDto)
         {
             foreach (var litigant in caseLitigantAddDto)
@@ -127,8 +131,8 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpPost("Add-Crime-To-Litigant")]
-        [Authorize(Roles = "Registration Officer")]
-        public async Task<IActionResult> AddCaseLitigant(CrimeAddDto crimeAddDto)
+        [Authorize(Policy = "Cases.Update")]
+        public async Task<IActionResult> AddCaseLitigantCrime(CrimeAddDto crimeAddDto)
         {
             var loggedUser = _authService.GetLoggedUserName();
             crimeAddDto.createdBy = loggedUser;
@@ -139,7 +143,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpPost("Add-Case-Docs")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.Create")]
         public async Task<IActionResult> AddCaseDocument(CaseDocumentAddDto dto)
         {
             dto.createdBy = _authService.GetLoggedUserName();
@@ -156,8 +160,8 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-All-Cases-Primary-Data-{pageNumber}-{pageSize}")]
-        [Authorize(Roles = "Registration Officer,Admin")]
-        public async Task<IActionResult> GetAllCasesPrimaryData([FromRoute] int pageNumber , [FromRoute] int pageSize)
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetAllCasesPrimaryData([FromRoute] int pageNumber, [FromRoute] int pageSize)
         {
 
             var query = new GetAllQuery(pageNumber, pageSize);
@@ -168,8 +172,8 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-All-Data-{id}")]
-        [Authorize]
-        public async Task <IActionResult> GetCaseFullData([FromRoute] Guid id)
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetCaseFullData([FromRoute] Guid id)
         {
             var query = new GetFullDataQuery(id);
             var result = await _mediator.Send(query);
@@ -179,21 +183,21 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-Litigant-Primary-Data-{id}-{pageNumber}-{pageSize}")]
-        [Authorize]
-        public async Task<IActionResult> GetCaseLitigantsPrimaryData([FromRoute] Guid id , int pageNumber , int pageSize)
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetCaseLitigantsPrimaryData([FromRoute] Guid id, int pageNumber, int pageSize)
         {
             var query = new GetCaseLitigantsPrimaryDataQuery(id, pageNumber, pageSize);
             var result = await _mediator.Send(query);
             return GetCaseLitigantsPrimaryDataResponseHelper.Map(result);
-        
+
         }
 
 
         [HttpGet("Get-Case-Litigant-Full-Data-{id}")]
-        [Authorize]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCaseLitigantsFullData([FromRoute] Guid id)
         {
-         
+
             var query = new GetCaseLitigantFullDataQuery(id);
             var result = await _mediator.Send(query);
             return GetCaseLitigantFullDataResponseHelper.Map(result);
@@ -201,8 +205,8 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Case-Lawyers-Primary-Data-{caseId}-{pageNumber}-{pageSize}")]
-        [Authorize]
-        public async Task<IActionResult> GetCaseLawyersPrimaryData([FromRoute] Guid caseId , [FromRoute] int pageNumber , [FromRoute] int pageSize)
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetCaseLawyersPrimaryData([FromRoute] Guid caseId, [FromRoute] int pageNumber, [FromRoute] int pageSize)
         {
             var query = new GetCaseLawyersPrimaryDataQuery(caseId, pageNumber, pageSize);
             var result = await _mediator.Send(query);
@@ -210,7 +214,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Case-Lawyers-Full-Data-{lawyerId}")]
-        [Authorize]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCaseLawyersFullData([FromRoute] string lawyerId)
         {
             var query = new GetLawyersFullDataQuery(lawyerId);
@@ -220,7 +224,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Case-Types-For-Drop-Down-List")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCaseTypesForDropDownMenu()
         {
             var query = new GetCaseTypesForDropDownMenuQuery();
@@ -229,7 +233,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Case-Topics-For-Drop-Down-List")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCaseTopicsForDropDownMenu()
         {
             var query = new GetCaseTopicsForDropDownMenuQuery();
@@ -238,7 +242,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Courts-For-Drop-Down-List")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCourtsForDropDownMenu()
         {
             var query = new GetCourtsForDropMenuQuery();
@@ -248,7 +252,7 @@ namespace CaseManagementSystemAPI.Controllers
 
 
         [HttpGet("Get-Litigants-Roles-For-Drop-Down-List")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetLitigantsRolesForDropDownMenu()
         {
             var query = new GetLitigantRolesForDropMenuQuery();
@@ -257,7 +261,7 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Cirmes-For-Drop-Down-List")]
-        [Authorize(Roles = "Registration Officer")]
+        [Authorize(Policy = "Cases.View")]
         public async Task<IActionResult> GetCrimesForDropDownMenu()
         {
             var query = new GetCrimesForDropMenuQuery();
@@ -266,8 +270,8 @@ namespace CaseManagementSystemAPI.Controllers
         }
 
         [HttpGet("Get-Litigant-Crimes-")]
-        [Authorize(Roles = "Registration Officer")]
-        public async Task<IActionResult> GetCrimesByLitigant([FromQuery] Guid caseId,[FromQuery] Guid litigantId,[FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 10)
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetCrimesByLitigant([FromQuery] Guid caseId, [FromQuery] Guid litigantId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var query = new GetCrimesByLitigantQuery(caseId, litigantId, pageNumber, pageSize);
             var result = await _mediator.Send(query);
@@ -277,14 +281,45 @@ namespace CaseManagementSystemAPI.Controllers
 
         [HttpGet("Get-Case-History")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetCaseHistory([FromQuery] Guid caseId,[FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetCaseHistory([FromQuery] Guid caseId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var query = new GetCaseHistoryQuery(caseId, pageNumber, pageSize);
             var result = await _mediator.Send(query);
             return GetCaseHistoryResponseHelper.Map(result);
         }
+
+        [HttpGet("Get-DocTypes-DropDown")]
+        [Authorize(Policy = "Cases.View")]
+
+        public async Task<IActionResult> GetDocTypesDropDown()
+        {
+            var query = new GetDocTypesDropDownMenuQuery();
+            var result = await _mediator.Send(query);
+            return GetDropMenuDataResponseHelper.Map(result);
+        }
+    
+
+        [HttpGet("Get-Case-Attachments/{caseId}")]
+        [Authorize(Policy = "Cases.View")]
+        public async Task<IActionResult> GetCaseAttachments(Guid caseId, int pageNumber = 1, int pageSize = 10)
+        {
+            var query = new GetAttachmentsQuery(caseId, pageNumber, pageSize);
+            var result = await _mediator.Send(query);
+            return PagedResultResponseHelper.Map(result);
+        }
+
+        [HttpPut("Delete-Attachment/{fileId}")]
+        [Authorize(Policy = "Files.Delete")]
+        public async Task<IActionResult> DeleteAttachment(Guid fileId, DeleteDto deleteDto)
+        {
+            deleteDto.DeletedBy = _authService.GetLoggedUserName();
+            var result = await _mediator.Send(new DeleteCaseFileCommand(fileId, deleteDto));
+            return DeleteAndUpdateResponseHelper.Map(result);
+        }
     }
+}
+
 
     #endregion
-}
+
 

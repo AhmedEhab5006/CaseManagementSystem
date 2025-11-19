@@ -22,6 +22,12 @@ namespace CaseManagementSystemAPI.ResponseHelpers.CaseControllerResponses
                         data: "Desired lawyer wasn't found | المحامي المطلوب غير موجود")
                 ),
 
+                CaseAssignmentServiceValidatation.AlreadyAssigned => new BadRequestObjectResult(
+                    new APIResponseHandler<string>(
+                        400, "Bad Request",
+                        data: "Desired lawyer already Assigned to This Case | المحامي المطلوب معين بالفعل لهذه الدعوى")
+                ),
+
                 CaseAssignmentServiceValidatation.casewasnnotfound => new BadRequestObjectResult(
                     new APIResponseHandler<string>(
                         400, "Bad Request",

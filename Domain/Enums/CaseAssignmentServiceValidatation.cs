@@ -8,6 +8,6 @@ namespace Domain.Enums
 {
     public enum CaseAssignmentServiceValidatation
     {
-        done , lawyerwasnnotfound , casewasnnotfound , error
+        done , lawyerwasnnotfound , casewasnnotfound , error , AlreadyAssigned
     }
 }

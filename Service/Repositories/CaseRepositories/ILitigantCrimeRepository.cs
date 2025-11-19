@@ -5,7 +5,6 @@ using Domain.Entites;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static Application.Repositories.IGenericRepository;
 
 namespace Application.Repositories.CaseRepositories
 {

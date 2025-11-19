@@ -17,6 +17,7 @@ namespace Application.Dto_s.CaseDtos
         public string CourtName { get; set; } = string.Empty;
         public string CourtGrade { get; set; } = string.Empty;
         public CaseStatus Status { get; set; }
+        public string? ClosingReason { get; set; }
 
     }
 }

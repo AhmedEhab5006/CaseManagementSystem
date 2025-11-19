@@ -28,6 +28,7 @@ namespace Application.Repositories.Auth
       public Task<AddValidation> AddUserAsync(UserAddDto userAddDto);
       public Task<DeleteAndUpdateValidatation> DeleteUserAsync(string userId, DeleteDto delete);
       public Task<IEnumerable<RoleReadDto>> GetAllRolesAsync();
+      public Task<IEnumerable<string>> GetUserPermissions(string userId);
     
 
     }

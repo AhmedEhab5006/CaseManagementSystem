@@ -10,5 +10,6 @@ namespace Application.UseCases.Auth
     {
         public string GetLoggedUserName();
         public string GetLoggedId();
+        public Task <IEnumerable<string>> GetLoggedPermissions();
     }
 }

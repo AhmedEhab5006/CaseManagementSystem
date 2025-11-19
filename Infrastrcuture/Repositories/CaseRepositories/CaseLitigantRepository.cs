@@ -21,6 +21,7 @@ namespace Infrastrcuture.Repositories.CaseRepositories
                 .Where(a => a.caseId == caseId)
                 .Include(a => a.Litigant)
                 .Include(a => a.Role)
+                .Include(a=>a.Case)
                 .AsQueryable();
 
             var totalCount = await query.CountAsync();

@@ -28,6 +28,12 @@ namespace Infrastrcuture.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("EndReport")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ReAssign")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("approved")
                         .HasColumnType("bit");
 
@@ -124,6 +130,7 @@ namespace Infrastrcuture.Migrations
                         new
                         {
                             id = new Guid("80808080-8080-8080-8080-808080808080"),
+                            ReAssign = false,
                             approved = true,
                             caseDate = new DateOnly(2024, 1, 15),
                             caseNumber = "2024/001",
@@ -146,6 +153,7 @@ namespace Infrastrcuture.Migrations
                         new
                         {
                             id = new Guid("90909090-9090-9090-9090-909090909090"),
+                            ReAssign = false,
                             approved = false,
                             caseDate = new DateOnly(2024, 2, 20),
                             caseNumber = "2024/002",
@@ -574,6 +582,9 @@ namespace Infrastrcuture.Migrations
 
                     b.Property<Guid>("CaseId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestStatus")
                         .IsRequired()
@@ -1776,6 +1787,188 @@ namespace Infrastrcuture.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Permissions", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            id = new Guid("11111111-0000-0000-0000-000000000001"),
+                            Description = "عرض المستخدمين",
+                            Name = "Users.View",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("11111111-0000-0000-0000-000000000002"),
+                            Description = "إنشاء مستخدم جديد",
+                            Name = "Users.Create",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("11111111-0000-0000-0000-000000000003"),
+                            Description = "تعديل بيانات المستخدم",
+                            Name = "Users.Update",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("11111111-0000-0000-0000-000000000004"),
+                            Description = "حذف مستخدم",
+                            Name = "Users.Delete",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000001"),
+                            Description = "عرض الأدوار والصلاحيات",
+                            Name = "Roles.View",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000002"),
+                            Description = "إنشاء دور جديد",
+                            Name = "Roles.Create",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000003"),
+                            Description = "تعديل بيانات دور",
+                            Name = "Roles.Update",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000004"),
+                            Description = "حذف دور",
+                            Name = "Roles.Delete",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000005"),
+                            Description = "عرض جميع الصلاحيات",
+                            Name = "Permissions.View",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("22222222-0000-0000-0000-000000000006"),
+                            Description = "تعيين الصلاحيات للأدوار والمستخدمين",
+                            Name = "Permissions.Assign",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-0000-0000-0000-000000000001"),
+                            Description = "عرض القضايا",
+                            Name = "Cases.View",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-0000-0000-0000-000000000002"),
+                            Description = "إنشاء قضية جديدة",
+                            Name = "Cases.Create",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-0000-0000-0000-000000000003"),
+                            Description = "تعديل بيانات القضية",
+                            Name = "Cases.Update",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-0000-0000-0000-000000000004"),
+                            Description = "إغلاق القضية",
+                            Name = "Cases.Close",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("33333333-0000-0000-0000-000000000005"),
+                            Description = "حذف قضية",
+                            Name = "Cases.Delete",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("44444444-0000-0000-0000-000000000001"),
+                            Description = "رفع ملف",
+                            Name = "Files.Upload",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("44444444-0000-0000-0000-000000000002"),
+                            Description = "عرض الملفات",
+                            Name = "Files.View",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            id = new Guid("44444444-0000-0000-0000-000000000003"),
+                            Description = "حذف ملف",
+                            Name = "Files.Delete",
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            isDeleted = false,
+                            versionNo = 0
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entites.Permissions.RolePermission", b =>
@@ -1825,6 +2018,188 @@ namespace Infrastrcuture.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("11111111-0000-0000-0000-000000000001"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("aaaaaaa1-0000-0000-0000-000000000001"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("11111111-0000-0000-0000-000000000002"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("aaaaaaa2-0000-0000-0000-000000000002"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("11111111-0000-0000-0000-000000000003"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("aaaaaaa3-0000-0000-0000-000000000003"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("11111111-0000-0000-0000-000000000004"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("aaaaaaa4-0000-0000-0000-000000000004"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000001"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb1-0000-0000-0000-000000000001"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000002"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb2-0000-0000-0000-000000000002"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000003"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb3-0000-0000-0000-000000000003"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000004"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb4-0000-0000-0000-000000000004"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000005"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb5-0000-0000-0000-000000000005"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("22222222-0000-0000-0000-000000000006"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("bbbbbbb6-0000-0000-0000-000000000006"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("33333333-0000-0000-0000-000000000001"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ccccccc1-0000-0000-0000-000000000001"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("33333333-0000-0000-0000-000000000002"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ccccccc2-0000-0000-0000-000000000002"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("33333333-0000-0000-0000-000000000003"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ccccccc3-0000-0000-0000-000000000003"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("33333333-0000-0000-0000-000000000004"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ccccccc4-0000-0000-0000-000000000004"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("33333333-0000-0000-0000-000000000005"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ccccccc5-0000-0000-0000-000000000005"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("44444444-0000-0000-0000-000000000001"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ddddddd1-0000-0000-0000-000000000001"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("44444444-0000-0000-0000-000000000002"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ddddddd2-0000-0000-0000-000000000002"),
+                            isDeleted = false,
+                            versionNo = 0
+                        },
+                        new
+                        {
+                            RoleId = "f5a0a1f3-5f7c-4a35-9b0e-0a9c4f0b0001",
+                            PermissionId = new Guid("44444444-0000-0000-0000-000000000003"),
+                            createdAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            createdBy = "System",
+                            id = new Guid("ddddddd3-0000-0000-0000-000000000003"),
+                            isDeleted = false,
+                            versionNo = 0
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entites.Permissions.UserPermission", b =>
@@ -3086,6 +3461,11 @@ namespace Infrastrcuture.Migrations
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole");
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasIndex("ApplicationUserId");
+
                     b.HasDiscriminator().HasValue("ApplicationUserRole");
 
                     b.HasData(
@@ -3425,6 +3805,13 @@ namespace Infrastrcuture.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUserRole", b =>
+                {
+                    b.HasOne("Infrastrcuture.Auth.ApplicationUser", null)
+                        .WithMany("UserRoles")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("Domain.Entites.Case", b =>
                 {
                     b.Navigation("CaseLitigants");
@@ -3496,6 +3883,8 @@ namespace Infrastrcuture.Migrations
             modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUser", b =>
                 {
                     b.Navigation("UserPermissions");
+
+                    b.Navigation("UserRoles");
                 });
 
             modelBuilder.Entity("Infrastrcuture.Auth.ApplicationUserRole", b =>

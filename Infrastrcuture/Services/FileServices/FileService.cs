@@ -1,6 +1,8 @@
 ﻿using Application.Dto_s.File;
+using Application.Interfaces;
 using Application.Interfaces.FileServices;
 using Application.Repositories;
+using Domain.Entites;
 using Domain.Entites.Files;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 namespace Infrastrcuture.Services.FileServices
 {
     public class FileService(IFTPCilentService _fTPCilentService 
-        , IFileEncryptionService _fileEncryptionService , IUnitOfWork _unitOfWork) : IFileService
+        , IFileEncryptionService _fileEncryptionService , IUnitOfWork _unitOfWork , ICacheService _cacheService) : IFileService
     {
         public async Task<byte[]> DownloadSecureFileAsync(FileEntity file)
         {
@@ -73,8 +75,10 @@ namespace Infrastrcuture.Services.FileServices
                 RemotePath = remotePath + file.FileName,
                 createdAt = DateTime.UtcNow,
                 versionNo = 1,
-                createdBy =  creator,
+                createdBy = creator,
             };
+
+
 
             await _unitOfWork.FileRepository.AddAsync(metadata);
             await _unitOfWork.SaveChangesAsync();
